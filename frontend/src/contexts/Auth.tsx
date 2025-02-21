@@ -1,7 +1,7 @@
 /*
   This file is part of Edgehog.
 
-  Copyright 2022 SECO Mind Srl
+  Copyright 2022-2025 SECO Mind Srl
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ function saveAuthConfig(
   }
 }
 
-function loadAuthConfig(): AuthConfig | null {
+let currentAuthConfig: AuthConfig | null = (() => {
   let authConfig: AuthConfig | null = null;
   try {
     authConfig = JSON.parse(Cookies.get("authConfig") || "");
@@ -81,6 +81,10 @@ function loadAuthConfig(): AuthConfig | null {
     return _.omit(authConfig, "_version");
   }
   return null;
+})();
+
+function loadAuthConfig(): AuthConfig | null {
+  return currentAuthConfig;
 }
 
 type AuthContextValue = {
@@ -113,6 +117,7 @@ const AuthProvider = ({ children, fetchGraphQL }: AuthProviderProps) => {
     (newAuthConfig: AuthConfig | null, persistConfig: boolean = false) => {
       saveAuthConfig(newAuthConfig, persistConfig);
       setAuthConfig(newAuthConfig);
+      currentAuthConfig = newAuthConfig;
     },
     [],
   );
