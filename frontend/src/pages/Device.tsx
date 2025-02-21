@@ -181,6 +181,11 @@ const DEVICE_OTA_OPERATIONS_FRAGMENT = graphql`
       baseImageUrl
       status
       createdAt
+      updateTarget {
+        updateCampaign {
+          name
+        }
+      }
     }
     ...OperationTable_otaOperations
   }
