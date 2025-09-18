@@ -541,6 +541,8 @@ type CreateReleaseProps = {
   requiredSystemModelsOptionsRef: CreateRelease_SystemModelsOptionsFragment$key;
   isLoading?: boolean;
   onSubmit: (data: ReleaseSubmitData) => void;
+  showModal?: boolean;
+  onToggleModal?: (show: boolean) => void;
 };
 
 type ContainerFormProps = {
@@ -1644,6 +1646,8 @@ const CreateRelease = ({
   requiredSystemModelsOptionsRef,
   isLoading = false,
   onSubmit,
+  showModal = false,
+  onToggleModal,
 }: CreateReleaseProps) => {
   const intl = useIntl();
 
@@ -1713,8 +1717,6 @@ const CreateRelease = ({
     );
 
   const applications = applicationsData.applications?.edges ?? [];
-
-  const [showModal, setShowModal] = useState(false);
 
   const [
     selectedContainersTemplateRelease,
@@ -1908,21 +1910,6 @@ const CreateRelease = ({
               }}
             />
           </FormRow>
-          <div className="d-flex justify-content-start align-items-center gap-2">
-            <Button
-              variant="primary"
-              title={intl.formatMessage({
-                id: "forms.CreateRelease.reuseReleaseTitleButton",
-                defaultMessage: "Copy configuration from an existing release",
-              })}
-              onClick={() => setShowModal(true)}
-            >
-              <FormattedMessage
-                id="forms.CreateRelease.reuseReleaseButton"
-                defaultMessage="Reuse Release"
-              />
-            </Button>
-          </div>
           <Stack className="mt-3">
             <h5>
               <FormattedMessage
@@ -2006,7 +1993,7 @@ const CreateRelease = ({
               defaultMessage="Confirm"
             />
           }
-          onCancel={() => setShowModal(false)}
+          onCancel={() => onToggleModal?.(false)}
           onConfirm={() => {
             if (
               !selectedContainersTemplateRelease ||
@@ -2107,7 +2094,7 @@ const CreateRelease = ({
             // Auto-hide success message after 5 seconds
             setTimeout(() => setShowImportSuccess(false), 5000);
 
-            setShowModal(false);
+            onToggleModal?.(false);
           }}
         >
           <p>
