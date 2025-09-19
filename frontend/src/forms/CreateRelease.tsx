@@ -942,27 +942,28 @@ const ContainerForm = ({
             />
           }
         >
-          <Form.Select
-            {...register(`containers.${index}.restartPolicy` as const)}
-            isInvalid={!!errors.containers?.[index]?.restartPolicy}
-            defaultValue=""
-          >
-            <option value="" disabled>
-              {intl.formatMessage({
-                id: "forms.CreateRelease.restartPolicyOption",
-                defaultMessage: "Select a Restart Policy",
-              })}
-            </option>
-            {restartPolicyOptions.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
-                disabled={option.value === ""}
-              >
-                {option.label}
-              </option>
-            ))}
-          </Form.Select>
+          <Controller
+            control={control}
+            name={`containers.${index}.restartPolicy`}
+            render={({ field }) => {
+              const selectedOption =
+                restartPolicyOptions.find((opt) => opt.value === field.value) ||
+                null;
+
+              return (
+                <Select
+                  value={selectedOption}
+                  onChange={(option) => {
+                    field.onChange(option ? option.value : null);
+                    markUserInteraction();
+                  }}
+                  options={restartPolicyOptions}
+                  isClearable
+                />
+              );
+            }}
+          />
+
           <Form.Control.Feedback type="invalid">
             {errors.containers?.[index]?.restartPolicy?.message && (
               <FormattedMessage
