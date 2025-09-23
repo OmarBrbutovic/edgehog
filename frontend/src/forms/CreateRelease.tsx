@@ -406,7 +406,6 @@ const applicationSchema = (intl: any) =>
               ),
             memorySwappiness: optionalNumberSchema
               .integer()
-              .min(0)
               .max(100)
               .nullable()
               .label(
