@@ -16,7 +16,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { FormattedMessage } from "react-intl";
 import { graphql, useFragment } from "react-relay/hooks";
@@ -128,6 +128,7 @@ const transformInputData = (
 const transformOutputData = (
   systemModel: UpdateSystemModel_SystemModelFragment$data,
   locale: Locale,
+  pictureMarkedForRemoval: boolean,
   data: SystemModelUpdateFormData,
 ): SystemModelOutputData => {
   const diff: SystemModelOutputData = {};
@@ -139,7 +140,7 @@ const transformOutputData = (
   }
   if (data.pictureFile) {
     diff.pictureFile = data.pictureFile[0];
-  } else if (systemModel.pictureUrl !== null && data.pictureFile === null) {
+  } else if (systemModel.pictureUrl !== null && pictureMarkedForRemoval) {
     diff.pictureUrl = null;
   }
   const oldDescription = getDescriptionByLocale(
@@ -185,6 +186,8 @@ const UpdateSystemModelForm = ({
   onSubmit,
   onDelete,
 }: Props) => {
+  const [pictureMarkedForRemoval, setPictureMarkedForRemoval] = useState(false);
+
   const systemModel = useFragment(UPDATE_SYSTEM_MODEL_FRAGMENT, systemModelRef);
   const {
     tenantInfo: { defaultLocale: locale },
@@ -209,7 +212,9 @@ const UpdateSystemModelForm = ({
   });
 
   const onFormSubmit = (data: SystemModelUpdateFormData) =>
-    onSubmit(transformOutputData(systemModel, locale, data));
+    onSubmit(
+      transformOutputData(systemModel, locale, pictureMarkedForRemoval, data),
+    );
   const canSubmit = !isLoading && isDirty;
   const canReset = isDirty && !isLoading;
 
@@ -230,7 +235,12 @@ const UpdateSystemModelForm = ({
 
   useEffect(() => {
     reset(transformInputData(systemModel, locale));
+    setPictureMarkedForRemoval(false);
   }, [reset, systemModel, locale]);
+
+  const pictureFileField = register("pictureFile", {
+    onChange: () => setPictureMarkedForRemoval(false),
+  });
 
   const pictureFile = useWatch({
     control,
@@ -240,7 +250,7 @@ const UpdateSystemModelForm = ({
   const picture =
     pictureFile instanceof FileList && pictureFile.length > 0
       ? URL.createObjectURL(pictureFile[0]) // picture is the new file
-      : pictureFile === null
+      : pictureMarkedForRemoval
         ? null // picture is removed
         : systemModel.pictureUrl; // picture is unchanged
 
@@ -254,7 +264,10 @@ const UpdateSystemModelForm = ({
                 {picture && (
                   <CloseButton
                     className="position-absolute bg-white border"
-                    onClick={() => setValue("pictureFile", null)}
+                    onClick={() => {
+                      setPictureMarkedForRemoval(true);
+                      setValue("pictureFile", null, { shouldDirty: true });
+                    }}
                   />
                 )}
                 <Figure
@@ -266,7 +279,7 @@ const UpdateSystemModelForm = ({
                 <Form.Control
                   type="file"
                   accept=".jpg,.jpeg,.gif,.png,.svg"
-                  {...register("pictureFile")}
+                  {...pictureFileField}
                 />
               </Form.Group>
             </Stack>
@@ -391,7 +404,10 @@ const UpdateSystemModelForm = ({
           <Button
             disabled={!canReset}
             variant="secondary"
-            onClick={() => reset()}
+            onClick={() => {
+              reset();
+              setPictureMarkedForRemoval(false);
+            }}
           >
             <FormattedMessage
               id="forms.UpdateSystemModel.resetButton"
