@@ -322,7 +322,7 @@ const DeviceConnectionFormRows = ({
 function timeoutPromise<T>(promise: Promise<T>, millis: number) {
   return Promise.race([
     promise,
-    new Promise((resolve, reject) => setTimeout(() => reject(), millis)),
+    new Promise((_resolve, reject) => setTimeout(() => reject(), millis)),
   ]);
 }
 
@@ -496,7 +496,7 @@ const DeviceContent = ({
         (newDeviceName: string) => {
           updateDevice({
             variables: { deviceId, input: { name: newDeviceName } },
-            onCompleted(data, errors) {
+            onCompleted(_data, errors) {
               if (errors) {
                 handleAPIErrors(errors);
                 return;
@@ -542,7 +542,7 @@ const DeviceContent = ({
           deviceId,
           input: { tags },
         },
-        onCompleted(data, errors) {
+        onCompleted(_data, errors) {
           if (errors) {
             handleAPIErrors(errors);
             return;
@@ -600,7 +600,7 @@ const DeviceContent = ({
           deviceId,
           input: { tags },
         },
-        onCompleted(data, errors) {
+        onCompleted(_data, errors) {
           if (errors) {
             handleAPIErrors(errors);
             return;

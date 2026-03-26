@@ -230,7 +230,7 @@ const BaseImageCollectionContent = ({
   const handleDeleteBaseImageCollection = useCallback(() => {
     deleteBaseImageCollection({
       variables: { baseImageCollectionId },
-      onCompleted(data, errors) {
+      onCompleted(_data, errors) {
         if (!errors || errors.length === 0 || errors[0].code === "not_found") {
           return navigate({ route: Route.baseImageCollections });
         }
@@ -288,7 +288,7 @@ const BaseImageCollectionContent = ({
           input: changes,
           first: 10_000,
         },
-        onCompleted(data, errors) {
+        onCompleted(_data, errors) {
           if (errors) {
             const errorFeedback = errors
               .map(({ fields, message }) =>

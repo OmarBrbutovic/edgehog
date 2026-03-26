@@ -1,7 +1,7 @@
 /*
  * This file is part of Edgehog.
  *
- * Copyright 2021-2025 SECO Mind Srl
+ * Copyright 2021-2026 SECO Mind Srl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ const HardwareTypeContent = ({ hardwareType }: HardwareTypeContentProps) => {
   const handleDeleteHardwareType = useCallback(() => {
     deleteHardwareType({
       variables: { hardwareTypeId },
-      onCompleted(data, errors) {
+      onCompleted(_data, errors) {
         if (!errors || errors.length === 0 || errors[0].code === "not_found") {
           return navigate({ route: Route.hardwareTypes });
         }
@@ -162,7 +162,7 @@ const HardwareTypeContent = ({ hardwareType }: HardwareTypeContentProps) => {
     (hardwareType: HardwareTypeOutputData) => {
       updateHardwareType({
         variables: { hardwareTypeId, input: hardwareType },
-        onCompleted(data, errors) {
+        onCompleted(_data, errors) {
           if (errors) {
             const errorFeedback = errors
               .map(({ fields, message }) =>
