@@ -44,7 +44,7 @@ import Page from "@/components/Page";
 import Result from "@/components/Result";
 import Spinner from "@/components/Spinner";
 import CreateFileForm, { FileFormOutputData } from "@/forms/CreateFile";
-import { computeDigest, createTarGzArchive } from "@/lib/files";
+import { computeDigest, createCompressedArchive } from "@/lib/files";
 import { Link, Route, useNavigate } from "@/Navigation";
 
 const GET_REPOSITORY_QUERY = graphql`
@@ -176,7 +176,7 @@ const FileCreateContent = ({ repository }: FileCreateContentProps) => {
         const needsArchive = files.length > 1 || hasRelativePaths;
 
         if (needsArchive) {
-          uploadBlob = await createTarGzArchive(files);
+          uploadBlob = await createCompressedArchive(files, "gzip");
 
           const baseName = archiveName?.trim() || "files-archive";
           fileName = baseName.endsWith(".tar.gz")

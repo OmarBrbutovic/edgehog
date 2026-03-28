@@ -60,7 +60,7 @@ import type {
   FileDestinationType,
   ManualFileDownloadRequestFromRepositoryData,
 } from "@/forms/validation";
-import { computeDigest, createTarGzArchive } from "@/lib/files";
+import { computeDigest, createCompressedArchive } from "@/lib/files";
 
 // We use graphql fields below in columns configuration
 /* eslint-disable relay/unused-fields */
@@ -282,7 +282,7 @@ const ManualFileDownloadRequestFormWrapper = ({
 
         if (needsArchive) {
           // Multiple files or folder contents: create tar.gz archive
-          uploadBlob = await createTarGzArchive(files);
+          uploadBlob = await createCompressedArchive(files, "gzip");
           const baseName = archiveName?.trim() || "files-archive";
           fileName = baseName.endsWith(".tar.gz")
             ? baseName

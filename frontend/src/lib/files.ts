@@ -18,12 +18,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// @ts-ignore: @addmaple/lz4 is currently missing type definitions
+import { compress, init } from "@addmaple/lz4";
 import { gzip } from "fflate";
 
 const BLOCK_SIZE = 512;
 
+type CompressionAlgorithm = "gzip" | "lz4";
+
 // Computes a SHA-256 digest of binary data
-// Returns the digest in the format "sha256:<hex>".
 const computeDigest = async (data: Uint8Array): Promise<string> => {
   const hashBuffer = await crypto.subtle.digest(
     "SHA-256",
@@ -38,16 +41,13 @@ const computeDigest = async (data: Uint8Array): Promise<string> => {
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return "0 B";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${(bytes / Math.pow(k, i)).toFixed(1).replace(/\.0$/, "")} ${sizes[i]}`;
 };
 
-// Returns the path to use as the tar entry name.
-// Uses webkitRelativePath (set by folder selection) when available,
-// falling back to the file name for individually selected files.
 const getTarEntryPath = (file: File): string =>
   file.webkitRelativePath || file.name;
 
@@ -112,15 +112,6 @@ const createTarArchive = async (files: File[]): Promise<Uint8Array> => {
     const nameBytes = encoder.encode(fileName);
     header.set(nameBytes.slice(0, 100), 0);
 
-    // File mode (offset 100, 8 bytes) - 0000644
-    header.set(encoder.encode("0000644\0"), 100);
-
-    // Owner ID (offset 108, 8 bytes) - 0000000
-    header.set(encoder.encode("0000000\0"), 108);
-
-    // Group ID (offset 116, 8 bytes) - 0000000
-    header.set(encoder.encode("0000000\0"), 116);
-
     // File size in octal (offset 124, 12 bytes)
     const sizeOctal = fileData.length.toString(8).padStart(11, "0");
     header.set(encoder.encode(sizeOctal + "\0"), 124);
@@ -176,19 +167,47 @@ const createTarArchive = async (files: File[]): Promise<Uint8Array> => {
   return tarData;
 };
 
-// Creates a tar.gz archive from multiple files.
-// Returns a Blob of the compressed archive.
+const createCompressedArchive = async (
+  files: File[],
+  algorithm: CompressionAlgorithm,
+): Promise<Blob> => {
+  if (algorithm === "gzip") {
+    return await createTarGzArchive(files);
+  }
+  if (algorithm === "lz4") {
+    return await createTarLz4Archive(files);
+  }
+
+  throw new Error(`Unsupported compression algorithm: ${algorithm}`);
+};
+
+// Creates a gzip-compressed tar archive from multiple files.
 const createTarGzArchive = async (files: File[]): Promise<Blob> => {
   const tarData = await createTarArchive(files);
+
   const gzippedData = await new Promise<Uint8Array>((resolve, reject) => {
     gzip(tarData, (err, data) => {
       if (err) reject(err);
       else resolve(data);
     });
   });
+
   return new Blob([gzippedData.buffer as ArrayBuffer], {
     type: "application/gzip",
   });
 };
 
-export { computeDigest, createTarArchive, createTarGzArchive, formatFileSize };
+// Creates an LZ4 compressed tar archive from multiple files.
+const createTarLz4Archive = async (files: File[]): Promise<Blob> => {
+  const tarData = await createTarArchive(files);
+
+  await init();
+
+  const lz4Data = await compress(tarData);
+
+  return new Blob([lz4Data.buffer as ArrayBuffer], {
+    type: "application/x-lz4",
+  });
+};
+
+export { computeDigest, createCompressedArchive, formatFileSize };
