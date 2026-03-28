@@ -55,7 +55,10 @@ import { RECORDS_TO_LOAD_FIRST } from "@/constants";
 import type { FileDownloadRequestFormValues } from "@/forms/ManualFileDownloadRequestForm";
 import ManualFileDownloadRequestForm from "@/forms/ManualFileDownloadRequestForm";
 import ManualFileDownloadRequestFromRepositoryForm from "@/forms/ManualFileDownloadRequestFromRepositoryForm";
-import type { ManualFileDownloadRequestFromRepositoryData } from "@/forms/validation";
+import type {
+  FileDestinationType,
+  ManualFileDownloadRequestFromRepositoryData,
+} from "@/forms/validation";
 import { computeDigest, createTarGzArchive } from "@/lib/files";
 
 // We use graphql fields below in columns configuration
@@ -173,6 +176,11 @@ const DEVICE_CREATE_MANAGED_FILE_DOWNLOAD_REQUEST_MUTATION = graphql`
   }
 `;
 
+type DestinationTypeOption = {
+  value: FileDestinationType;
+  label: string;
+};
+
 const formatRelayErrors = (
   errors: ReadonlyArray<{
     fields?: ReadonlyArray<string> | null;
@@ -189,12 +197,14 @@ type ManualFileDownloadRequestFormWrapperProps = {
   setErrorFeedback: (feedback: React.ReactNode) => void;
   deviceId: string;
   showAdvancedOptions: boolean;
+  destinationTypeOptions: DestinationTypeOption[];
 };
 
 const ManualFileDownloadRequestFormWrapper = ({
   setErrorFeedback,
   deviceId,
   showAdvancedOptions,
+  destinationTypeOptions,
 }: ManualFileDownloadRequestFormWrapperProps) => {
   const intl = useIntl();
   const [isUploading, setIsUploading] = useState(false);
@@ -438,6 +448,7 @@ const ManualFileDownloadRequestFormWrapper = ({
       isLoading={isUploading}
       onFileSubmit={handleFileUpload}
       showAdvancedOptions={showAdvancedOptions}
+      destinationTypeOptions={destinationTypeOptions}
     />
   );
 };
@@ -447,6 +458,7 @@ type ManualFileDownloadRequestFromRepositoryFormWrapperProps = {
   repositoriesQueryRef: PreloadedQuery<FilesUploadTab_getRepositories_Query>;
   deviceId: string;
   showAdvancedOptions: boolean;
+  destinationTypeOptions: DestinationTypeOption[];
 };
 
 const ManualFileDownloadRequestFromRepositoryFormWrapper = ({
@@ -454,6 +466,7 @@ const ManualFileDownloadRequestFromRepositoryFormWrapper = ({
   repositoriesQueryRef,
   deviceId,
   showAdvancedOptions,
+  destinationTypeOptions,
 }: ManualFileDownloadRequestFromRepositoryFormWrapperProps) => {
   const intl = useIntl();
   const [isUploading, setIsUploading] = useState(false);
@@ -571,6 +584,7 @@ const ManualFileDownloadRequestFromRepositoryFormWrapper = ({
       isLoading={isUploading}
       onFileSubmit={handleFileUpload}
       showAdvancedOptions={showAdvancedOptions}
+      destinationTypeOptions={destinationTypeOptions}
     />
   );
 };
@@ -581,7 +595,7 @@ type FilesUploadTabProps = {
 
 const FilesUploadTab = ({ deviceRef }: FilesUploadTabProps) => {
   const intl = useIntl();
-  const { deviceId } = useParams();
+  const { deviceId = "" } = useParams();
 
   const [updateMode, setUpdateMode] = useState<"repository" | "file">("file");
 
@@ -596,10 +610,6 @@ const FilesUploadTab = ({ deviceRef }: FilesUploadTabProps) => {
     () => data.fileDownloadRequests?.edges?.map((edge) => edge.node) ?? [],
     [data.fileDownloadRequests],
   );
-
-  const showAdvancedOptions =
-    data.capabilities.includes("POSIX_FILE_TRANSFER_STORAGE") ||
-    data.capabilities.includes("POSIX_FILE_TRANSFER_STREAM");
 
   const [getRepositoriesQuery, getRepositories] =
     useQueryLoader<FilesUploadTab_getRepositories_Query>(
@@ -616,6 +626,41 @@ const FilesUploadTab = ({ deviceRef }: FilesUploadTabProps) => {
   );
 
   useEffect(fetchRepositories, [fetchRepositories]);
+
+  const { capabilities } = data;
+
+  const hasStorage =
+    capabilities.includes("POSIX_FILE_TRANSFER_STORAGE") ||
+    capabilities.includes("WINDOWS_FILE_TRANSFER_STORAGE");
+
+  const hasStream =
+    capabilities.includes("POSIX_FILE_TRANSFER_STREAM") ||
+    capabilities.includes("WINDOWS_FILE_TRANSFER_STREAM");
+
+  const showAdvancedOptions =
+    capabilities.includes("POSIX_FILE_TRANSFER_STORAGE") ||
+    capabilities.includes("POSIX_FILE_TRANSFER_STREAM");
+
+  const destinationTypeOptions = useMemo<DestinationTypeOption[]>(() => {
+    const options: DestinationTypeOption[] = [];
+
+    if (hasStorage) {
+      options.push({ value: "STORAGE", label: "Storage" });
+    }
+
+    if (hasStream) {
+      options.push(
+        { value: "STREAMING", label: "Streaming" },
+        { value: "FILESYSTEM", label: "File System" },
+      );
+    }
+
+    return options;
+  }, [hasStorage, hasStream]);
+
+  if (!hasStorage && !hasStream) {
+    return null;
+  }
 
   return (
     <Tab
@@ -648,7 +693,7 @@ const FilesUploadTab = ({ deviceRef }: FilesUploadTabProps) => {
                 type="radio"
                 name="updateMode"
                 value={updateMode}
-                onChange={(mode) => setUpdateMode(mode)}
+                onChange={setUpdateMode}
                 size="sm"
               >
                 <ToggleButton
@@ -682,19 +727,22 @@ const FilesUploadTab = ({ deviceRef }: FilesUploadTabProps) => {
                 </ToggleButton>
               </ToggleButtonGroup>
             </div>
+
             {updateMode === "file" ? (
               <ManualFileDownloadRequestFormWrapper
                 setErrorFeedback={setErrorFeedback}
-                deviceId={deviceId || ""}
+                deviceId={deviceId}
                 showAdvancedOptions={showAdvancedOptions}
+                destinationTypeOptions={destinationTypeOptions}
               />
             ) : (
               getRepositoriesQuery && (
                 <ManualFileDownloadRequestFromRepositoryFormWrapper
                   repositoriesQueryRef={getRepositoriesQuery}
                   setErrorFeedback={setErrorFeedback}
-                  deviceId={deviceId || ""}
+                  deviceId={deviceId}
                   showAdvancedOptions={showAdvancedOptions}
+                  destinationTypeOptions={destinationTypeOptions}
                 />
               )
             )}
@@ -717,5 +765,7 @@ const FilesUploadTab = ({ deviceRef }: FilesUploadTabProps) => {
     </Tab>
   );
 };
+
+export type { DestinationTypeOption };
 
 export default FilesUploadTab;
