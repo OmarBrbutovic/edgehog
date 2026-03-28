@@ -26,6 +26,8 @@ import Icon from "@/components/Icon";
 import Tag from "@/components/Tag";
 import { formatFileSize } from "@/lib/files";
 
+const MAX_TOTAL_SIZE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB limit
+
 const readFileEntry = (entry: FileSystemFileEntry): Promise<File> =>
   new Promise((resolve, reject) => entry.file(resolve, reject));
 
@@ -165,6 +167,9 @@ const FileDropzone = ({ files, onChange, isInvalid }: FileDropzoneProps) => {
     [files],
   );
 
+  // Determine if the user has exceeded the 2GB browser limit
+  const isOverLimit = totalSize > MAX_TOTAL_SIZE_BYTES;
+
   return (
     <>
       <input
@@ -189,7 +194,7 @@ const FileDropzone = ({ files, onChange, isInvalid }: FileDropzoneProps) => {
         onDrop={handleDrop}
         className={`border rounded p-3 text-center${
           isDragOver ? " border-primary bg-light" : " border-dashed"
-        }${isInvalid ? " is-invalid border-danger" : ""}`}
+        }${isInvalid || isOverLimit ? " is-invalid border-danger" : ""}`}
         style={{ minHeight: "80px", transition: "background-color 0.15s" }}
       >
         {files.length === 0 ? (
@@ -239,6 +244,14 @@ const FileDropzone = ({ files, onChange, isInvalid }: FileDropzoneProps) => {
                 }}
               />
             </p>
+
+            <p className="mt-3 mb-0 text-secondary small">
+              <Icon icon="faCircleInfo" className="me-1" />
+              <FormattedMessage
+                id="components.FileDropzone.emptyStateLimitWarning"
+                defaultMessage="Browser memory limits restrict web uploads to 2 GB."
+              />
+            </p>
           </div>
         ) : (
           <>
@@ -246,11 +259,13 @@ const FileDropzone = ({ files, onChange, isInvalid }: FileDropzoneProps) => {
               {files.map((file, index) => (
                 <Tag
                   key={`${getFileKey(file)}-${index}`}
-                  className="d-inline-flex align-items-center gap-1 px-2"
+                  className={`d-inline-flex align-items-center gap-1 px-2 ${
+                    isOverLimit ? "bg-danger text-white border-danger" : ""
+                  }`}
                 >
                   {getFileKey(file)}
                   <CloseButton
-                    variant="white"
+                    variant={isOverLimit ? "white" : "secondary"}
                     className="ms-1"
                     style={{ fontSize: "0.75em" }}
                     onClick={(e) => {
@@ -261,13 +276,18 @@ const FileDropzone = ({ files, onChange, isInvalid }: FileDropzoneProps) => {
                 </Tag>
               ))}
             </div>
+
             <p className="mb-0 text-muted small">
               <FormattedMessage
                 id="components.FileDropzone.fileSizeSummary"
                 defaultMessage="{count} {count, plural, one {file} other {files}} selected — {size} total · {addFiles} · {addFolder} · {clearAll}"
                 values={{
                   count: files.length,
-                  size: formatFileSize(totalSize),
+                  size: (
+                    <span className={isOverLimit ? "text-danger fw-bold" : ""}>
+                      {formatFileSize(totalSize)}
+                    </span>
+                  ),
                   addFiles: (
                     <a
                       href="#"
@@ -313,6 +333,16 @@ const FileDropzone = ({ files, onChange, isInvalid }: FileDropzoneProps) => {
                 }}
               />
             </p>
+
+            {isOverLimit && (
+              <p className="mt-2 mb-0 text-danger small fw-bold">
+                <Icon icon="warning" className="me-1" />
+                <FormattedMessage
+                  id="components.FileDropzone.overLimitError"
+                  defaultMessage="You have exceeded the 2 GB browser limit."
+                />
+              </p>
+            )}
           </>
         )}
       </div>

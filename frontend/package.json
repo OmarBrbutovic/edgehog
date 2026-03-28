@@ -11,6 +11,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "dependencies": {
+    "@addmaple/lz4": "^0.2.0",
     "@eslint/compat": "^2.0.2",
     "@formatjs/cli": "^6.2.12",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
