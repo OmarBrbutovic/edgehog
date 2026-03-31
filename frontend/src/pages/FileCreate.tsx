@@ -44,7 +44,14 @@ import Page from "@/components/Page";
 import Result from "@/components/Result";
 import Spinner from "@/components/Spinner";
 import CreateFileForm, { FileFormOutputData } from "@/forms/CreateFile";
-import { computeDigest, createTarGzArchive } from "@/lib/files";
+import {
+  computeDigest,
+  createTarGzArchive,
+  formatFileSize,
+  getUploadRequestHeaders,
+  isS3PresignedPutUrl,
+  S3_SINGLE_PUT_MAX_SIZE_BYTES,
+} from "@/lib/files";
 import { Link, Route, useNavigate } from "@/Navigation";
 
 const GET_REPOSITORY_QUERY = graphql`
@@ -190,8 +197,7 @@ const FileCreateContent = ({ repository }: FileCreateContentProps) => {
           uncompressedSize = files[0].size;
         }
 
-        const archiveData = new Uint8Array(await uploadBlob.arrayBuffer());
-        const digest = await computeDigest(archiveData);
+        const digest = await computeDigest(uploadBlob);
 
         const result = await commitCreateFile({
           repositoryId,
@@ -210,14 +216,30 @@ const FileCreateContent = ({ repository }: FileCreateContentProps) => {
           throw new Error("Missing upload URL");
         }
 
+        if (
+          isS3PresignedPutUrl(result.putPresignedUrl) &&
+          uploadBlob.size > S3_SINGLE_PUT_MAX_SIZE_BYTES
+        ) {
+          throw new Error(
+            intl.formatMessage(
+              {
+                id: "pages.FileCreate.error.s3SinglePutTooLarge",
+                defaultMessage:
+                  "This storage backend supports up to 5 GiB per direct upload URL. Selected upload is {size}. Use a smaller file/archive.",
+              },
+              {
+                size: formatFileSize(uploadBlob.size),
+              },
+            ),
+          );
+        }
+
         setIsUploading(true);
 
         try {
           const uploadResponse = await fetch(result.putPresignedUrl, {
             method: "PUT",
-            headers: {
-              "x-ms-blob-type": "BlockBlob",
-            },
+            headers: getUploadRequestHeaders(result.putPresignedUrl),
             body: uploadBlob,
           });
 

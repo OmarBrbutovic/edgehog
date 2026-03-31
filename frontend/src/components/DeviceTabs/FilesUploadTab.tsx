@@ -60,7 +60,14 @@ import type {
   FileDestinationType,
   ManualFileDownloadRequestFromRepositoryData,
 } from "@/forms/validation";
-import { computeDigest, createTarGzArchive } from "@/lib/files";
+import {
+  computeDigest,
+  createTarGzArchive,
+  formatFileSize,
+  getUploadRequestHeaders,
+  isS3PresignedPutUrl,
+  S3_SINGLE_PUT_MAX_SIZE_BYTES,
+} from "@/lib/files";
 
 // We use graphql fields below in columns configuration
 /* eslint-disable relay/unused-fields */
@@ -299,9 +306,8 @@ const ManualFileDownloadRequestFormWrapper = ({
           compression = "tar.gz";
         }
 
-        const archiveData = new Uint8Array(await uploadBlob.arrayBuffer());
         const fileDownloadRequestId = uuidv7();
-        const digest = await computeDigest(archiveData);
+        const digest = await computeDigest(uploadBlob);
 
         // Get presigned URL from the backend
         const presignedUrls = await new Promise<{
@@ -355,9 +361,27 @@ const ManualFileDownloadRequestFormWrapper = ({
         });
 
         // Upload the file to the presigned PUT URL
+        if (
+          isS3PresignedPutUrl(presignedUrls.put_url) &&
+          uploadBlob.size > S3_SINGLE_PUT_MAX_SIZE_BYTES
+        ) {
+          throw new Error(
+            intl.formatMessage(
+              {
+                id: "components.DeviceTabs.FilesUploadTab.error.s3SinglePutTooLarge",
+                defaultMessage:
+                  "This storage backend supports up to 5 GiB per direct upload URL. Selected upload is {size}. Use a smaller file/archive.",
+              },
+              {
+                size: formatFileSize(uploadBlob.size),
+              },
+            ),
+          );
+        }
+
         const uploadResponse = await fetch(presignedUrls.put_url, {
           method: "PUT",
-          headers: { "x-ms-blob-type": "BlockBlob" },
+          headers: getUploadRequestHeaders(presignedUrls.put_url),
           body: uploadBlob,
         });
 
