@@ -688,17 +688,14 @@
   "components.DeviceMappingsFormInput.pathOnHostLabel": {
     "defaultMessage": "Path On Host"
   },
-  "components.DeviceTabs.ApplicationsTab": {
-    "defaultMessage": "Applications"
-  },
   "components.DeviceTabs.ApplicationsTab.DeployedApplications": {
     "defaultMessage": "Deployed Applications"
   },
   "components.DeviceTabs.ApplicationsTab.InstallNewApp": {
     "defaultMessage": "Add Available Applications"
   },
-  "components.DeviceTabs.BaseImageTab": {
-    "defaultMessage": "Base Image"
+  "components.DeviceTabs.ApplicationsTab.title": {
+    "defaultMessage": "Applications"
   },
   "components.DeviceTabs.BaseImageTab.buildId": {
     "defaultMessage": "Build identifier"
@@ -709,13 +706,16 @@
   "components.DeviceTabs.BaseImageTab.name": {
     "defaultMessage": "Name"
   },
+  "components.DeviceTabs.BaseImageTab.title": {
+    "defaultMessage": "Base Image"
+  },
   "components.DeviceTabs.BaseImageTab.version": {
     "defaultMessage": "Version"
   },
-  "components.DeviceTabs.BatteryTab": {
+  "components.DeviceTabs.BatteryTab.title": {
     "defaultMessage": "Battery"
   },
-  "components.DeviceTabs.CellularConnectionTab": {
+  "components.DeviceTabs.CellularConnectionTab.title": {
     "defaultMessage": "Cellular Connection"
   },
   "components.DeviceTabs.FileManagementTab.fileManagementLabel": {
@@ -784,9 +784,6 @@
   "components.DeviceTabs.FilesUploadTab.uploadLocation": {
     "defaultMessage": "Upload Location"
   },
-  "components.DeviceTabs.HardwareInfoTab": {
-    "defaultMessage": "Hardware Info"
-  },
   "components.DeviceTabs.HardwareInfoTab.cpuArchitecture": {
     "defaultMessage": "CPU architecture"
   },
@@ -802,26 +799,26 @@
   "components.DeviceTabs.HardwareInfoTab.memoryTotalBytes": {
     "defaultMessage": "Total memory"
   },
-  "components.DeviceTabs.LocationTab": {
-    "defaultMessage": "Geolocation"
+  "components.DeviceTabs.HardwareInfoTab.title": {
+    "defaultMessage": "Hardware Info"
   },
   "components.DeviceTabs.LocationTab.lastUpdateAt": {
     "defaultMessage": "Last known location, updated at {date}"
   },
-  "components.DeviceTabs.NetworkInterfacesTab": {
-    "defaultMessage": "Network Interfaces"
+  "components.DeviceTabs.LocationTab.title": {
+    "defaultMessage": "Geolocation"
   },
-  "components.DeviceTabs.OSInfoTab": {
-    "defaultMessage": "Operating System"
+  "components.DeviceTabs.NetworkInterfacesTab.title": {
+    "defaultMessage": "Network Interfaces"
   },
   "components.DeviceTabs.OSInfoTab.name": {
     "defaultMessage": "OS name"
   },
+  "components.DeviceTabs.OSInfoTab.title": {
+    "defaultMessage": "Operating System"
+  },
   "components.DeviceTabs.OSInfoTab.version": {
     "defaultMessage": "OS version"
-  },
-  "components.DeviceTabs.RuntimeInfoTab": {
-    "defaultMessage": "Runtime"
   },
   "components.DeviceTabs.RuntimeInfoTab.environment": {
     "defaultMessage": "Environment"
@@ -829,14 +826,14 @@
   "components.DeviceTabs.RuntimeInfoTab.name": {
     "defaultMessage": "Name"
   },
+  "components.DeviceTabs.RuntimeInfoTab.title": {
+    "defaultMessage": "Runtime"
+  },
   "components.DeviceTabs.RuntimeInfoTab.url": {
     "defaultMessage": "URL"
   },
   "components.DeviceTabs.RuntimeInfoTab.version": {
     "defaultMessage": "Version"
-  },
-  "components.DeviceTabs.SoftwareUpdateTab": {
-    "defaultMessage": "Software Updates"
   },
   "components.DeviceTabs.SoftwareUpdateTab.manualOTAUpdate": {
     "defaultMessage": "Manual OTA Update"
@@ -850,14 +847,14 @@
   "components.DeviceTabs.SoftwareUpdateTab.otaUpdateCreationErrorFeedback": {
     "defaultMessage": "Could not start the OTA update, please try again."
   },
+  "components.DeviceTabs.SoftwareUpdateTab.title": {
+    "defaultMessage": "Software Updates"
+  },
   "components.DeviceTabs.SoftwareUpdateTab.updatesHistory": {
     "defaultMessage": "History"
   },
-  "components.DeviceTabs.StorageUsageTab": {
+  "components.DeviceTabs.StorageUsageTab.title": {
     "defaultMessage": "Storage"
-  },
-  "components.DeviceTabs.SystemStatusTab": {
-    "defaultMessage": "System Status"
   },
   "components.DeviceTabs.SystemStatusTab.lastUpdateAt": {
     "defaultMessage": "Last updated at {date}"
@@ -868,10 +865,13 @@
   "components.DeviceTabs.SystemStatusTab.taskCount": {
     "defaultMessage": "Active Tasks"
   },
+  "components.DeviceTabs.SystemStatusTab.title": {
+    "defaultMessage": "System Status"
+  },
   "components.DeviceTabs.SystemStatusTab.uptimeMilliseconds": {
     "defaultMessage": "Last boot at"
   },
-  "components.DeviceTabs.WiFiScanResultsTab": {
+  "components.DeviceTabs.WiFiScanResultsTab.title": {
     "defaultMessage": "WiFi APs"
   },
   "components.DevicesGroupsTable.deviceIdTitle": {
@@ -2610,9 +2610,6 @@
   "forms.ManualOtaFromFileForm.update": {
     "defaultMessage": "Update"
   },
-  "forms.ReleaseCreate.reuseReleaseTitleButton": {
-    "defaultMessage": "Copy configuration from an existing release"
-  },
   "forms.UpdateBaseImage.baseImageCollectionLabel": {
     "defaultMessage": "Base Image Collection"
   },
@@ -3516,6 +3513,9 @@
   },
   "pages.ReleaseCreate.reuseReleaseButton": {
     "defaultMessage": "Reuse Release"
+  },
+  "pages.ReleaseCreate.reuseReleaseTitleButton": {
+    "defaultMessage": "Copy configuration from an existing release"
   },
   "pages.ReleaseCreate.title": {
     "defaultMessage": "Create Release for {applicationName}"

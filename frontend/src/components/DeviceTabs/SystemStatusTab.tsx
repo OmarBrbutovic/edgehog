@@ -59,7 +59,7 @@ const DeviceSystemStatusTab = ({ deviceRef }: DeviceSystemStatusTabProps) => {
     <Tab
       eventKey="device-system-status-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.SystemStatusTab",
+        id: "components.DeviceTabs.SystemStatusTab.title",
         defaultMessage: "System Status",
       })}
     >
