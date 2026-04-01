@@ -195,20 +195,27 @@ const getSourceFiles = (rootDir) => {
   return files;
 };
 
-// Helper: Improved Regex to handle single quotes and formatting variants
+// Helper: Regex to handle JSX, formatMessage hook/function calls, and formatting variants
 const findFormattedMessageIds = (source) => {
   const matches = [];
-  const regex = /<FormattedMessage\b[\s\S]*?\bid\s*=\s*(['"])(.*?)\1/g;
-  let match;
 
-  while ((match = regex.exec(source)) !== null) {
-    // match[0] is the full string from "<FormattedMessage" up to the end of the "id" prop.
-    // By adding match[0].length to match.index, we get the exact position of the id prop.
+  // 1. Match JSX: <FormattedMessage id="my.id" />
+  const jsxRegex = /<FormattedMessage\b[^>]*?\bid\s*=\s*(['"])(.*?)\1/g;
+  let match;
+  while ((match = jsxRegex.exec(source)) !== null) {
     const idPositionIndex = match.index + match[0].length;
     const line = source.slice(0, idPositionIndex).split("\n").length;
-
-    matches.push({ id: match[2], line }); // match[2] is the actual ID content
+    matches.push({ id: match[2], line });
   }
+
+  // 2. Match Function Calls: intl.formatMessage({ id: "my.id" })
+  const funcRegex = /formatMessage\s*\(\s*\{[^}]*?\bid\s*:\s*(['"])(.*?)\1/g;
+  while ((match = funcRegex.exec(source)) !== null) {
+    const idPositionIndex = match.index + match[0].length;
+    const line = source.slice(0, idPositionIndex).split("\n").length;
+    matches.push({ id: match[2], line });
+  }
+
   return matches;
 };
 

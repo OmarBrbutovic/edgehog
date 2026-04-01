@@ -182,14 +182,14 @@ const ManualOtaFromCollectionForm = ({
     inputValue
       ? intl.formatMessage(
           {
-            id: "forms.ManualOtaFromFileCollection.noBaseImageCollsFoundMatching",
+            id: "forms.ManualOtaFromCollectionForm.noBaseImageCollsFoundMatching",
             defaultMessage:
               'No base image collections found matching "{inputValue}"',
           },
           { inputValue },
         )
       : intl.formatMessage({
-          id: "forms.ManualOtaFromFileCollection.noBaseImageCollsAvailable",
+          id: "forms.ManualOtaFromCollectionForm.noBaseImageCollsAvailable",
           defaultMessage: "No base image collections available",
         });
 
@@ -228,7 +228,7 @@ const ManualOtaFromCollectionForm = ({
                 }}
                 className={invalid ? "is-invalid" : ""}
                 placeholder={intl.formatMessage({
-                  id: "forms.ManualOtaFromFileCollection.baseImageCollectionOption",
+                  id: "forms.ManualOtaFromCollectionForm.baseImageCollectionOption",
                   defaultMessage: "Search or select a base image collection...",
                 })}
                 options={baseImageCollections}

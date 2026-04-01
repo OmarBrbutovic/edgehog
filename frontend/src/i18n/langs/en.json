@@ -554,6 +554,9 @@
   "components.DeploymentDetails.applicationName": {
     "defaultMessage": "Application Name:"
   },
+  "components.DeploymentDetails.containersTab": {
+    "defaultMessage": "Containers"
+  },
   "components.DeploymentDetails.deviceMappingState": {
     "defaultMessage": "State"
   },
@@ -565,6 +568,9 @@
   },
   "components.DeploymentDetails.eventType": {
     "defaultMessage": "Type"
+  },
+  "components.DeploymentDetails.eventsTab": {
+    "defaultMessage": "Events"
   },
   "components.DeploymentDetails.imageStatus": {
     "defaultMessage": "Image Status:"
@@ -706,17 +712,14 @@
   "components.DeviceMappingsFormInput.pathOnHostLabel": {
     "defaultMessage": "Path On Host"
   },
-  "components.DeviceTabs.ApplicationsTab": {
-    "defaultMessage": "Applications"
-  },
   "components.DeviceTabs.ApplicationsTab.DeployedApplications": {
     "defaultMessage": "Deployed Applications"
   },
   "components.DeviceTabs.ApplicationsTab.InstallNewApp": {
     "defaultMessage": "Add Available Applications"
   },
-  "components.DeviceTabs.BaseImageTab": {
-    "defaultMessage": "Base Image"
+  "components.DeviceTabs.ApplicationsTab.title": {
+    "defaultMessage": "Applications"
   },
   "components.DeviceTabs.BaseImageTab.buildId": {
     "defaultMessage": "Build identifier"
@@ -727,17 +730,17 @@
   "components.DeviceTabs.BaseImageTab.name": {
     "defaultMessage": "Name"
   },
+  "components.DeviceTabs.BaseImageTab.title": {
+    "defaultMessage": "Base Image"
+  },
   "components.DeviceTabs.BaseImageTab.version": {
     "defaultMessage": "Version"
   },
-  "components.DeviceTabs.BatteryTab": {
+  "components.DeviceTabs.BatteryTab.title": {
     "defaultMessage": "Battery"
   },
-  "components.DeviceTabs.CellularConnectionTab": {
+  "components.DeviceTabs.CellularConnectionTab.title": {
     "defaultMessage": "Cellular Connection"
-  },
-  "components.DeviceTabs.FilesUploadTab": {
-    "defaultMessage": "Files Upload"
   },
   "components.DeviceTabs.FilesUploadTab.error.presignedUrlMissingFields": {
     "defaultMessage": "Presigned URL response is missing put_url or get_url."
@@ -760,11 +763,11 @@
   "components.DeviceTabs.FilesUploadTab.requestHistory": {
     "defaultMessage": "Request History"
   },
+  "components.DeviceTabs.FilesUploadTab.title": {
+    "defaultMessage": "Files Upload"
+  },
   "components.DeviceTabs.FilesUploadTab.uploadLocation": {
     "defaultMessage": "Upload Location"
-  },
-  "components.DeviceTabs.HardwareInfoTab": {
-    "defaultMessage": "Hardware Info"
   },
   "components.DeviceTabs.HardwareInfoTab.cpuArchitecture": {
     "defaultMessage": "CPU architecture"
@@ -781,26 +784,26 @@
   "components.DeviceTabs.HardwareInfoTab.memoryTotalBytes": {
     "defaultMessage": "Total memory"
   },
-  "components.DeviceTabs.LocationTab": {
-    "defaultMessage": "Geolocation"
+  "components.DeviceTabs.HardwareInfoTab.title": {
+    "defaultMessage": "Hardware Info"
   },
   "components.DeviceTabs.LocationTab.lastUpdateAt": {
     "defaultMessage": "Last known location, updated at {date}"
   },
-  "components.DeviceTabs.NetworkInterfacesTab": {
-    "defaultMessage": "Network Interfaces"
+  "components.DeviceTabs.LocationTab.title": {
+    "defaultMessage": "Geolocation"
   },
-  "components.DeviceTabs.OSInfoTab": {
-    "defaultMessage": "Operating System"
+  "components.DeviceTabs.NetworkInterfacesTab.title": {
+    "defaultMessage": "Network Interfaces"
   },
   "components.DeviceTabs.OSInfoTab.name": {
     "defaultMessage": "OS name"
   },
+  "components.DeviceTabs.OSInfoTab.title": {
+    "defaultMessage": "Operating System"
+  },
   "components.DeviceTabs.OSInfoTab.version": {
     "defaultMessage": "OS version"
-  },
-  "components.DeviceTabs.RuntimeInfoTab": {
-    "defaultMessage": "Runtime"
   },
   "components.DeviceTabs.RuntimeInfoTab.environment": {
     "defaultMessage": "Environment"
@@ -808,14 +811,14 @@
   "components.DeviceTabs.RuntimeInfoTab.name": {
     "defaultMessage": "Name"
   },
+  "components.DeviceTabs.RuntimeInfoTab.title": {
+    "defaultMessage": "Runtime"
+  },
   "components.DeviceTabs.RuntimeInfoTab.url": {
     "defaultMessage": "URL"
   },
   "components.DeviceTabs.RuntimeInfoTab.version": {
     "defaultMessage": "Version"
-  },
-  "components.DeviceTabs.SoftwareUpdateTab": {
-    "defaultMessage": "Software Updates"
   },
   "components.DeviceTabs.SoftwareUpdateTab.manualOTAUpdate": {
     "defaultMessage": "Manual OTA Update"
@@ -823,17 +826,17 @@
   "components.DeviceTabs.SoftwareUpdateTab.otaUpdateCreationErrorFeedback": {
     "defaultMessage": "Could not start the OTA update, please try again."
   },
+  "components.DeviceTabs.SoftwareUpdateTab.title": {
+    "defaultMessage": "Software Updates"
+  },
   "components.DeviceTabs.SoftwareUpdateTab.updatesHistory": {
     "defaultMessage": "History"
   },
   "components.DeviceTabs.SoftwareUpdateTab.updatingTo": {
     "defaultMessage": "Updating to image <a>{baseImageName}</a>"
   },
-  "components.DeviceTabs.StorageUsageTab": {
+  "components.DeviceTabs.StorageUsageTab.title": {
     "defaultMessage": "Storage"
-  },
-  "components.DeviceTabs.SystemStatusTab": {
-    "defaultMessage": "System Status"
   },
   "components.DeviceTabs.SystemStatusTab.lastUpdateAt": {
     "defaultMessage": "Last updated at {date}"
@@ -844,10 +847,13 @@
   "components.DeviceTabs.SystemStatusTab.taskCount": {
     "defaultMessage": "Active Tasks"
   },
+  "components.DeviceTabs.SystemStatusTab.title": {
+    "defaultMessage": "System Status"
+  },
   "components.DeviceTabs.SystemStatusTab.uptimeMilliseconds": {
     "defaultMessage": "Last boot at"
   },
-  "components.DeviceTabs.WiFiScanResultsTab": {
+  "components.DeviceTabs.WiFiScanResultsTab.title": {
     "defaultMessage": "WiFi APs"
   },
   "components.DevicesGroupsTable.deviceIdTitle": {
@@ -1467,12 +1473,6 @@
   },
   "components.campaignTargetStatus.Successful": {
     "defaultMessage": "Successful"
-  },
-  "components.deploymentDetails.containersTab": {
-    "defaultMessage": "Containers"
-  },
-  "components.deploymentDetails.eventsTab": {
-    "defaultMessage": "Events"
   },
   "components.deploymentDetails.noDeviceMappingsMessage": {
     "defaultMessage": "No Device Mappings"
@@ -2466,11 +2466,20 @@
   "forms.ManualFileDownloadRequestFromRepositoryForm.userIdLabel": {
     "defaultMessage": "User ID"
   },
+  "forms.ManualOtaFromCollectionForm.baseImageCollectionOption": {
+    "defaultMessage": "Search or select a base image collection..."
+  },
   "forms.ManualOtaFromCollectionForm.baseImageFromCollectionLabel": {
     "defaultMessage": "Base Image Collection"
   },
   "forms.ManualOtaFromCollectionForm.baseImageFromLabel": {
     "defaultMessage": "Base Image"
+  },
+  "forms.ManualOtaFromCollectionForm.noBaseImageCollsAvailable": {
+    "defaultMessage": "No base image collections available"
+  },
+  "forms.ManualOtaFromCollectionForm.noBaseImageCollsFoundMatching": {
+    "defaultMessage": "No base image collections found matching \"{inputValue}\""
   },
   "forms.ManualOtaFromCollectionForm.selectBaseImageCollection": {
     "defaultMessage": "Select a base image collection before selecting an image..."
@@ -2478,23 +2487,11 @@
   "forms.ManualOtaFromCollectionForm.update": {
     "defaultMessage": "Update"
   },
-  "forms.ManualOtaFromFileCollection.baseImageCollectionOption": {
-    "defaultMessage": "Search or select a base image collection..."
-  },
-  "forms.ManualOtaFromFileCollection.noBaseImageCollsAvailable": {
-    "defaultMessage": "No base image collections available"
-  },
-  "forms.ManualOtaFromFileCollection.noBaseImageCollsFoundMatching": {
-    "defaultMessage": "No base image collections found matching \"{inputValue}\""
-  },
   "forms.ManualOtaFromFileForm.baseImageLabel": {
     "defaultMessage": "Base image file"
   },
   "forms.ManualOtaFromFileForm.update": {
     "defaultMessage": "Update"
-  },
-  "forms.ReleaseCreate.reuseReleaseTitleButton": {
-    "defaultMessage": "Copy configuration from an existing release"
   },
   "forms.UpdateBaseImage.baseImageCollectionLabel": {
     "defaultMessage": "Base Image Collection"
@@ -3399,6 +3396,9 @@
   },
   "pages.ReleaseCreate.reuseReleaseButton": {
     "defaultMessage": "Reuse Release"
+  },
+  "pages.ReleaseCreate.reuseReleaseTitleButton": {
+    "defaultMessage": "Copy configuration from an existing release"
   },
   "pages.ReleaseCreate.title": {
     "defaultMessage": "Create Release for {applicationName}"

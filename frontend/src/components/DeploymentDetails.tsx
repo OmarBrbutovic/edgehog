@@ -611,7 +611,7 @@ const DeploymentDetails = ({ deploymentRef }: DeploymentDetailsProps) => {
         <Tab
           eventKey="containers"
           title={intl.formatMessage({
-            id: "components.deploymentDetails.containersTab",
+            id: "components.DeploymentDetails.containersTab",
             defaultMessage: "Containers",
           })}
         >
@@ -634,7 +634,7 @@ const DeploymentDetails = ({ deploymentRef }: DeploymentDetailsProps) => {
         <Tab
           eventKey="events"
           title={intl.formatMessage({
-            id: "components.deploymentDetails.eventsTab",
+            id: "components.DeploymentDetails.eventsTab",
             defaultMessage: "Events",
           })}
         >

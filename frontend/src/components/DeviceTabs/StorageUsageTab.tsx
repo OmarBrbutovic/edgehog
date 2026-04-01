@@ -47,7 +47,7 @@ const DeviceStorageUsageTab = ({ deviceRef }: DeviceStorageUsageTabProps) => {
     <Tab
       eventKey="device-storage-usage-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.StorageUsageTab",
+        id: "components.DeviceTabs.StorageUsageTab.title",
         defaultMessage: "Storage",
       })}
     >

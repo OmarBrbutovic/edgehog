@@ -693,7 +693,7 @@ const FilesUploadTab = ({ deviceRef }: FilesUploadTabProps) => {
     <Tab
       eventKey="device-files-upload-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.FilesUploadTab",
+        id: "components.DeviceTabs.FilesUploadTab.title",
         defaultMessage: "Files Upload",
       })}
     >

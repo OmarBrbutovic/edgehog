@@ -51,7 +51,7 @@ const DeviceCellularConnectionTab = ({
     <Tab
       eventKey="device-cellular-connection-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.CellularConnectionTab",
+        id: "components.DeviceTabs.CellularConnectionTab.title",
         defaultMessage: "Cellular Connection",
       })}
     >

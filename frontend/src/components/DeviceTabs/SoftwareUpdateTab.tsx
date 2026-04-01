@@ -268,7 +268,7 @@ const DeviceSoftwareUpdateTab = ({
     <Tab
       eventKey="device-software-update-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.SoftwareUpdateTab",
+        id: "components.DeviceTabs.SoftwareUpdateTab.title",
         defaultMessage: "Software Updates",
       })}
     >
