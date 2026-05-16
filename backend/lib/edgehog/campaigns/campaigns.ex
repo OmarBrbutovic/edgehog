@@ -107,6 +107,10 @@ defmodule Edgehog.Campaigns do
         description "Resumes a paused campaign rollout."
       end
 
+      update Campaign, :cancel_campaign, :cancel do
+        description "Cancels a campaign rollout."
+      end
+
       update Campaign, :update_campaign, :update do
         description "Updates a scheduled campaign that has not yet started"
 
@@ -141,9 +145,11 @@ defmodule Edgehog.Campaigns do
       define :mark_campaign_paused, action: :mark_as_paused
       define :mark_campaign_failed, action: :mark_as_failed
       define :mark_campaign_successful, action: :mark_as_successful
+      define :mark_campaign_cancelled, action: :mark_as_cancelled
       define :mark_campaign_scheduled, action: :mark_as_scheduled
       define :pause_campaign, action: :pause
       define :resume_campaign, action: :resume
+      define :cancel_campaign, action: :cancel
     end
 
     resource CampaignTarget do

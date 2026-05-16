@@ -61,6 +61,7 @@ defmodule Edgehog.Campaigns.CampaignMechanism.FileDownload.Executor do
     case notification.payload.action.name do
       :set_response -> handle_file_download_response(notification, data)
       :pause -> handle_mark_as_paused(state, data)
+      :cancel -> LazyBatch.handle_cancel(state, data)
       _ -> :keep_state_and_data
     end
   end

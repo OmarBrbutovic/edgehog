@@ -200,6 +200,16 @@ defmodule Edgehog.Campaigns.Campaign do
       change set_attribute(:status, :paused)
     end
 
+    update :mark_as_cancelled do
+      argument :completion_timestamp, :utc_datetime_usec do
+        default &DateTime.utc_now/0
+      end
+
+      change set_attribute(:completion_timestamp, arg(:completion_timestamp))
+      change set_attribute(:status, :cancelled)
+      change set_attribute(:outcome, :cancelled)
+    end
+
     update :mark_as_scheduled do
       change set_attribute(:status, :scheduled)
     end
@@ -209,6 +219,13 @@ defmodule Edgehog.Campaigns.Campaign do
 
       validate {Validations.ValidateStatus, operation: :pause}
       change set_attribute(:status, :pausing)
+    end
+
+    update :cancel do
+      require_atomic? false
+
+      validate {Validations.ValidateStatus, operation: :cancel}
+      change set_attribute(:status, :cancelling)
     end
 
     update :resume do
@@ -324,6 +341,7 @@ defmodule Edgehog.Campaigns.Campaign do
     module EdgehogWeb.Endpoint
 
     publish :pause, [[:id, "*"]]
+    publish :cancel, [[:id, "*"]]
   end
 
   postgres do

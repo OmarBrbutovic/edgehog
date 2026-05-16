@@ -279,6 +279,9 @@ defimpl Edgehog.Campaigns.CampaignMechanism.Core,
   defdelegate mark_campaign_as_paused!(mechanism, campaign),
     to: Any
 
+  defdelegate mark_campaign_as_cancelled!(mechanism, campaign, now \\ DateTime.utc_now()),
+    to: Any
+
   defdelegate get_campaign_status(mechanism, campaign),
     to: Any
 
