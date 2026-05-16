@@ -737,6 +737,9 @@ enum CampaignTargetStatus {
 }
 
 enum CampaignOutcome {
+  "The campaign was cancelled before completion."
+  CANCELLED
+
   "The campaign has finished with a failure."
   FAILURE
 
@@ -745,6 +748,12 @@ enum CampaignOutcome {
 }
 
 enum CampaignStatus {
+  "The campaign rollout has been cancelled."
+  CANCELLED
+
+  "The campaign rollout is being cancelled."
+  CANCELLING
+
   "The campaign has finished."
   FINISHED
 
@@ -8412,6 +8421,15 @@ type campaigns_result {
   updated: Campaign
 }
 
+"The result of the :cancel_campaign mutation"
+type CancelCampaignResult {
+  "The successful result of the mutation"
+  result: Campaign
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
 "The result of the :resume_campaign mutation"
 type ResumeCampaignResult {
   "The successful result of the mutation"
@@ -9177,6 +9195,9 @@ type RootMutationType {
 
   "Resumes a paused campaign rollout."
   resumeCampaign(id: ID!): ResumeCampaignResult
+
+  "Cancels a campaign rollout."
+  cancelCampaign(id: ID!): CancelCampaignResult
 
   "Creates a new channel."
   createChannel(input: CreateChannelInput!): CreateChannelResult

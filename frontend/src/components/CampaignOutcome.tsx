@@ -37,6 +37,7 @@ const CAMPAIGN_OUTCOME_FRAGMENT = graphql`
 const colors: Record<CampaignOutcomeEnum, string> = {
   SUCCESS: "text-success",
   FAILURE: "text-danger",
+  CANCELLED: "text-muted",
 };
 
 const messages = defineMessages<CampaignOutcomeEnum>({
@@ -47,6 +48,10 @@ const messages = defineMessages<CampaignOutcomeEnum>({
   FAILURE: {
     id: "components.CampaignOutcome.Failure",
     defaultMessage: "Failure",
+  },
+  CANCELLED: {
+    id: "components.CampaignOutcome.Cancelled",
+    defaultMessage: "Cancelled",
   },
 });
 

@@ -133,11 +133,20 @@
   "components.BatteryTable.statusTitle": {
     "defaultMessage": "Status"
   },
+  "components.CampaignOutcome.Cancelled": {
+    "defaultMessage": "Cancelled"
+  },
   "components.CampaignOutcome.Failure": {
     "defaultMessage": "Failure"
   },
   "components.CampaignOutcome.Success": {
     "defaultMessage": "Success"
+  },
+  "components.CampaignStatus.Cancelled": {
+    "defaultMessage": "Cancelled"
+  },
+  "components.CampaignStatus.Cancelling": {
+    "defaultMessage": "Cancelling"
   },
   "components.CampaignStatus.Finished": {
     "defaultMessage": "Finished"
@@ -3297,6 +3306,12 @@
   "pages.Deployment.upgradeErrorOffline": {
     "defaultMessage": "The device is disconnected. You cannot upgrade an application while it is offline."
   },
+  "pages.DeploymentCampaign.cancelButton": {
+    "defaultMessage": "Cancel"
+  },
+  "pages.DeploymentCampaign.cancelErrorFeedback": {
+    "defaultMessage": "Could not cancel the campaign, please try again."
+  },
   "pages.DeploymentCampaign.deploymentCampaignNotFound.message": {
     "defaultMessage": "Return to the Deployment Campaign list."
   },
@@ -3453,6 +3468,12 @@
   },
   "pages.FileCreate.title": {
     "defaultMessage": "Create File"
+  },
+  "pages.FileDownloadCampaign.cancelButton": {
+    "defaultMessage": "Cancel"
+  },
+  "pages.FileDownloadCampaign.cancelErrorFeedback": {
+    "defaultMessage": "Could not cancel the campaign, please try again."
   },
   "pages.FileDownloadCampaign.notFound.message": {
     "defaultMessage": "Return to the File Download Campaign list."
@@ -3747,6 +3768,12 @@
   },
   "pages.SystemModels.title": {
     "defaultMessage": "System Models"
+  },
+  "pages.UpdateCampaign.cancelButton": {
+    "defaultMessage": "Cancel"
+  },
+  "pages.UpdateCampaign.cancelErrorFeedback": {
+    "defaultMessage": "Could not cancel the campaign, please try again."
   },
   "pages.UpdateCampaign.pauseButton": {
     "defaultMessage": "Pause"
