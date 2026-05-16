@@ -33,6 +33,7 @@ defprotocol Edgehog.Campaigns.CampaignMechanism.Core do
   def mark_campaign_as_failed!(mechanism, campaign, now \\ DateTime.utc_now())
   def mark_campaign_as_successful!(mechanism, campaign, now \\ DateTime.utc_now())
   def mark_campaign_as_paused!(mechanism, campaign)
+  def mark_campaign_as_cancelled!(mechanism, campaign)
   def get_campaign_status(mechanism, campaign)
   def get_target_count(mechanism, tenant_id, campaign_id)
   def get_failed_target_count(mechanism, tenant_id, campaign_id)
@@ -152,6 +153,21 @@ defimpl Edgehog.Campaigns.CampaignMechanism.Core, for: Any do
   """
   def mark_campaign_as_paused!(_mechanism, campaign) do
     Campaigns.mark_campaign_paused!(campaign)
+  end
+
+  @doc """
+  Marks a campaign as cancelled.
+
+  ## Parameters
+    - mechanism: The campaign mechanism (unused in default implementation).
+    - campaign: The campaign struct.
+    - now: The timestamp to set as completion time. Defaults to `DateTime.utc_now()`.
+
+  ## Returns
+    - The updated campaign struct marked as cancelled.
+  """
+  def mark_campaign_as_cancelled!(_mechanism, campaign, now \\ DateTime.utc_now()) do
+    Campaigns.mark_campaign_cancelled!(campaign, %{completion_timestamp: now})
   end
 
   # Campaign Data

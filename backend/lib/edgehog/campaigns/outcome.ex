@@ -23,7 +23,8 @@ defmodule Edgehog.Campaigns.Outcome do
   use Ash.Type.Enum,
     values: [
       success: "The campaign has finished successfully.",
-      failure: "The campaign has finished with a failure."
+      failure: "The campaign has finished with a failure.",
+      cancelled: "The campaign was cancelled before completion."
     ]
 
   def graphql_type(_), do: :campaign_outcome

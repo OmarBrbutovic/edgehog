@@ -700,6 +700,42 @@ defmodule Edgehog.Campaigns.Executors.DeploymentDeployExecutorTest do
       # Process should terminate normally (completing successfully while paused)
       assert_normal_exit(pid, ref)
     end
+
+    test "cancel causes campaign to be cancelled and executor to terminate", %{tenant: tenant} do
+      target_count = Enum.random(2..10)
+
+      campaign =
+        campaign_with_targets_fixture(target_count,
+          mechanism_type: :deployment_deploy,
+          campaign_mechanism: [max_in_progress_operations: Enum.random(1..3)],
+          tenant: tenant
+        )
+
+      pid = start_executor!(campaign)
+
+      wait_for_state(pid, :wait_for_available_slot, 1000)
+
+      ref = Process.monitor(pid)
+
+      campaign = Ash.get!(Campaign, campaign.id, tenant: tenant)
+      {:ok, _} = Campaigns.cancel_campaign(campaign)
+
+      wait_for_state(pid, :wait_for_campaign_cancelled)
+
+      %{tenant_id: tenant_id, id: campaign_id} = campaign
+
+      %DeploymentDeploy{}
+      |> MechanismCore.list_in_progress_targets(tenant_id, campaign_id)
+      |> Enum.each(fn target ->
+        update_deployment_state!(tenant, target.deployment_id, :stopped)
+      end)
+
+      assert_normal_exit(pid, ref)
+
+      cancelled_campaign = Ash.get!(Campaign, campaign.id, tenant: tenant)
+      assert cancelled_campaign.status == :cancelled
+      assert cancelled_campaign.outcome == :cancelled
+    end
   end
 
   defp fake_deploy(device, release, tenant) do

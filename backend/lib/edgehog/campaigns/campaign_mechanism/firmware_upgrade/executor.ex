@@ -64,6 +64,7 @@ defmodule Edgehog.Campaigns.CampaignMechanism.FirmwareUpgrade.Executor do
     case notification.payload.action.name do
       :update_status -> handle_update_status(notification, data)
       :pause -> handle_mark_as_paused(state, data)
+      :cancel -> LazyBatch.handle_cancel(state, data)
       _ -> :keep_state_and_data
     end
   end

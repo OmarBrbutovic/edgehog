@@ -78,6 +78,48 @@ defmodule Edgehog.Campaigns.Executors.DeploymentUpgradeExecutorTest do
       assert_normal_exit(pid, ref)
     end
 
+    test "cancel causes campaign to be cancelled and executor to terminate", %{tenant: tenant} do
+      target_count = Enum.random(2..10)
+
+      campaign =
+        campaign_with_targets_fixture(target_count,
+          mechanism_type: :deployment_upgrade,
+          campaign_mechanism: [max_in_progress_operations: Enum.random(1..3)],
+          tenant: tenant
+        )
+
+      pid = start_executor!(campaign)
+
+      # Wait for executor to reach a running state
+      wait_for_state(pid, :wait_for_available_slot, 1000)
+
+      # Monitor the executor to detect termination
+      ref = Process.monitor(pid)
+
+      # Reload campaign and trigger cancel via Campaigns context
+      campaign = Ash.get!(Campaign, campaign.id, tenant: tenant)
+      {:ok, _} = Campaigns.cancel_campaign(campaign)
+
+      # Executor should transition to wait_for_campaign_cancelled
+      wait_for_state(pid, :wait_for_campaign_cancelled)
+
+      # Mark all in-progress deployments as started so executor can finish
+      %{tenant_id: tenant_id, id: campaign_id} = campaign
+
+      %DeploymentUpgrade{}
+      |> MechanismCore.list_in_progress_targets(tenant_id, campaign_id)
+      |> Enum.each(fn target ->
+        update_deployment_state!(tenant, target.deployment_id, :started)
+      end)
+
+      # Wait for executor to terminate and campaign to be marked cancelled
+      assert_normal_exit(pid, ref)
+
+      cancelled_campaign = Ash.get!(Campaign, campaign.id, tenant: tenant)
+      assert cancelled_campaign.status == :cancelled
+      assert cancelled_campaign.outcome == :cancelled
+    end
+
     test "when deployment upgrade campaign is already marked as failed", %{tenant: tenant} do
       campaign =
         1
