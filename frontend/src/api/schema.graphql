@@ -737,6 +737,9 @@ enum CampaignTargetStatus {
 }
 
 enum CampaignOutcome {
+  "The campaign was cancelled before completion."
+  CANCELLED
+
   "The campaign has finished with a failure."
   FAILURE
 
@@ -745,6 +748,12 @@ enum CampaignOutcome {
 }
 
 enum CampaignStatus {
+  "The campaign rollout has been cancelled."
+  CANCELLED
+
+  "The campaign rollout is being cancelled."
+  CANCELLING
+
   "The campaign has finished."
   FINISHED
 
@@ -1652,6 +1661,44 @@ input ReleaseCreateContainerDependenciesInput {
 
 input ReleaseCreateRequiredSystemModelsInput {
   id: ID
+}
+
+":release_container_dependencies connection"
+type ReleaseContainerDependenciesConnection {
+  "Total count on all pages"
+  count: Int
+
+  "Page information"
+  pageInfo: PageInfo!
+
+  ":release_container_dependencies edges"
+  edges: [ReleaseContainerDependenciesEdge!]
+}
+
+":release_container_dependencies edge"
+type ReleaseContainerDependenciesEdge {
+  "Cursor"
+  cursor: String!
+
+  ":release_container_dependencies node"
+  node: ReleaseContainerDependencies!
+}
+
+input ReleaseContainerDependenciesFilterInput {
+  and: [ReleaseContainerDependenciesFilterInput!]
+  or: [ReleaseContainerDependenciesFilterInput!]
+  not: [ReleaseContainerDependenciesFilterInput!]
+  container: ContainerFilterInput
+  dependency: ContainerFilterInput
+}
+
+type ReleaseContainerDependencies {
+  "A unique identifier"
+  id: ID!
+
+  container: Container!
+
+  dependency: Container!
 }
 
 enum ContainerVolumeSortField {
@@ -2728,6 +2775,7 @@ input ReleaseFilterInput {
   application: ApplicationFilterInput
   deployments: DeploymentFilterInput
   containers: ContainerFilterInput
+  containerDependencies: ReleaseContainerDependenciesFilterInput
   systemModels: SystemModelFilterInput
 }
 
@@ -2779,6 +2827,22 @@ type Release implements Node {
     "The number of records to return to the end. Maximum 250"
     last: Int
   ): ContainerConnection!
+  containerDependencies(
+    "A filter to limit the results"
+    filter: ReleaseContainerDependenciesFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): ReleaseContainerDependenciesConnection!
   systemModels(
     "How to sort the records in the response"
     sort: [SystemModelSortInput]
@@ -5705,11 +5769,21 @@ type CreateFileUploadRequestResult {
 }
 
 input CreateFileUploadRequestInput {
+  "The value depends on the selected source_type: for 'storage' is the ID of an 'io.edgehog.devicemanager.storage.File' property, for 'streaming' it's an empty string, and for 'filesystem' is a path of a file on the device."
   source: String
+
+  "Source from which the file should be read from, with allowed values: [storage, streaming, filesystem]."
   sourceType: FileSource!
+
+  "Optional enum string for the file encoding with default value empty, other values are: [gz, lz4, tar, tar.gz, tar.lz4]"
   encoding: String
+
+  "Flag to enable the progress reporting of the upload."
   progressTracked: Boolean
+
+  "Optional HTTP headers to include in the upload request. The value is a map where keys are header names and values are header values."
   httpHeaders: JsonString
+
   deviceId: ID!
 }
 
@@ -5913,19 +5987,43 @@ input FileUploadRequestFilterId {
 
 input FileUploadRequestFilterInput {
   and: [FileUploadRequestFilterInput!]
+
   or: [FileUploadRequestFilterInput!]
+
   not: [FileUploadRequestFilterInput!]
+
   id: FileUploadRequestFilterId
+
+  "The presigned URL to which the file should be uploaded."
   url: FileUploadRequestFilterUrl
+
+  "The value depends on the selected source_type: for 'storage' is the ID of an 'io.edgehog.devicemanager.storage.File' property, for 'streaming' it's an empty string, and for 'filesystem' is a path of a file on the device."
   source: FileUploadRequestFilterSource
+
+  "Source from which the file should be read from, with allowed values: [storage, streaming, filesystem]."
   sourceType: FileUploadRequestFilterSourceType
+
+  "Optional enum string for the file encoding with default value empty, other values are: [gz, lz4, tar, tar.gz, tar.lz4]"
   encoding: FileUploadRequestFilterEncoding
+
+  "Flag to enable the progress reporting of the upload."
   progressTracked: FileUploadRequestFilterProgressTracked
+
+  "The status of the file upload (e.g., 'pending', 'sent', 'in_progress', 'completed', 'failed')."
   status: FileUploadRequestFilterStatus
+
+  "The progress of the file upload as a percentage (0-100)."
   progressPercentage: FileUploadRequestFilterProgressPercentage
+
+  "A 0 code is a success, errors are POSIX error numbers."
   responseCode: FileUploadRequestFilterResponseCode
+
+  "Optional message for the response sent by the device."
   responseMessage: FileUploadRequestFilterResponseMessage
+
+  "Optional HTTP headers to include in the upload request. The value is a map where keys are header names and values are header values."
   httpHeaders: FileUploadRequestFilterHttpHeaders
+
   device: DeviceFilterInput
 }
 
@@ -5937,24 +6035,34 @@ input FileUploadRequestSortInput {
 type FileUploadRequest {
   id: ID!
 
+  "The presigned URL to which the file should be uploaded."
   url: String!
 
+  "The value depends on the selected source_type: for 'storage' is the ID of an 'io.edgehog.devicemanager.storage.File' property, for 'streaming' it's an empty string, and for 'filesystem' is a path of a file on the device."
   source: String
 
+  "Source from which the file should be read from, with allowed values: [storage, streaming, filesystem]."
   sourceType: FileSource!
 
+  "Optional enum string for the file encoding with default value empty, other values are: [gz, lz4, tar, tar.gz, tar.lz4]"
   encoding: String
 
+  "Flag to enable the progress reporting of the upload."
   progressTracked: Boolean
 
+  "The status of the file upload (e.g., 'pending', 'sent', 'in_progress', 'completed', 'failed')."
   status: FileUploadRequestStatus
 
+  "The progress of the file upload as a percentage (0-100)."
   progressPercentage: Int
 
+  "A 0 code is a success, errors are POSIX error numbers."
   responseCode: Int
 
+  "Optional message for the response sent by the device."
   responseMessage: String
 
+  "Optional HTTP headers to include in the upload request. The value is a map where keys are header names and values are header values."
   httpHeaders: JsonString
 
   device: Device!
@@ -8074,6 +8182,15 @@ type campaigns_result {
   updated: Campaign
 }
 
+"The result of the :cancel_campaign mutation"
+type CancelCampaignResult {
+  "The successful result of the mutation"
+  result: Campaign
+
+  "Any errors generated, if the mutation failed"
+  errors: [MutationError!]!
+}
+
 "The result of the :resume_campaign mutation"
 type ResumeCampaignResult {
   "The successful result of the mutation"
@@ -8839,6 +8956,9 @@ type RootMutationType {
 
   "Resumes a paused campaign rollout."
   resumeCampaign(id: ID!): ResumeCampaignResult
+
+  "Cancels a campaign rollout."
+  cancelCampaign(id: ID!): CancelCampaignResult
 
   "Creates a new channel."
   createChannel(input: CreateChannelInput!): CreateChannelResult

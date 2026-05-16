@@ -40,6 +40,8 @@ const colors: Record<CampaignStatusEnum, string> = {
   IN_PROGRESS: "text-warning",
   PAUSING: "text-warning",
   PAUSED: "text-warning",
+  CANCELLING: "text-warning",
+  CANCELLED: "text-muted",
   FINISHED: "text-success",
 };
 
@@ -64,6 +66,14 @@ const messages = defineMessages<CampaignStatusEnum>({
     id: "components.CampaignStatus.Paused",
     defaultMessage: "Paused",
   },
+  CANCELLING: {
+    id: "components.CampaignStatus.Cancelling",
+    defaultMessage: "Cancelling",
+  },
+  CANCELLED: {
+    id: "components.CampaignStatus.Cancelled",
+    defaultMessage: "Cancelled",
+  },
   FINISHED: {
     id: "components.CampaignStatus.Finished",
     defaultMessage: "Finished",
@@ -79,11 +89,16 @@ const CampaignStatus = ({ campaignRef }: Props) => {
 
   // Determine icon type and animation based on status
   const isPausing = status === "PAUSING";
+  const isCancelling = status === "CANCELLING";
 
   const iconName =
-    status === "SCHEDULED" ? "circleEmpty" : isPausing ? "spinner" : "circle";
+    status === "SCHEDULED"
+      ? "circleEmpty"
+      : isPausing || isCancelling
+        ? "spinner"
+        : "circle";
 
-  const animationClass = isPausing ? "fa-spin" : "";
+  const animationClass = isPausing || isCancelling ? "fa-spin" : "";
 
   return (
     <div className="d-flex align-items-center">
