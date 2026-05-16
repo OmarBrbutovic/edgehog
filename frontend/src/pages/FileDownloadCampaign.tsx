@@ -38,6 +38,7 @@ import type {
   FileDownloadCampaign_getCampaign_Query,
   FileDownloadCampaign_getCampaign_Query$data,
 } from "@/api/__generated__/FileDownloadCampaign_getCampaign_Query.graphql";
+import type { FileDownloadCampaign_cancelCampaign_Mutation } from "@/api/__generated__/FileDownloadCampaign_cancelCampaign_Mutation.graphql";
 import type { FileDownloadCampaign_pauseCampaign_Mutation } from "@/api/__generated__/FileDownloadCampaign_pauseCampaign_Mutation.graphql";
 import type { FileDownloadCampaign_resumeCampaign_Mutation } from "@/api/__generated__/FileDownloadCampaign_resumeCampaign_Mutation.graphql";
 
@@ -78,6 +79,20 @@ const GET_CAMPAIGN_QUERY = graphql`
 const PAUSE_CAMPAIGN_MUTATION = graphql`
   mutation FileDownloadCampaign_pauseCampaign_Mutation($id: ID!) {
     pauseCampaign(id: $id) {
+      result {
+        id
+        status
+      }
+      errors {
+        message
+      }
+    }
+  }
+`;
+
+const CANCEL_CAMPAIGN_MUTATION = graphql`
+  mutation FileDownloadCampaign_cancelCampaign_Mutation($id: ID!) {
+    cancelCampaign(id: $id) {
       result {
         id
         status
@@ -193,6 +208,11 @@ const CampaignActions = ({
       PAUSE_CAMPAIGN_MUTATION,
     );
 
+  const [cancelCampaign, isCancelling] =
+    useMutation<FileDownloadCampaign_cancelCampaign_Mutation>(
+      CANCEL_CAMPAIGN_MUTATION,
+    );
+
   const [resumeCampaign, isResuming] =
     useMutation<FileDownloadCampaign_resumeCampaign_Mutation>(
       RESUME_CAMPAIGN_MUTATION,
@@ -225,6 +245,33 @@ const CampaignActions = ({
     });
   }, [fileDownloadCampaignId, pauseCampaign, setErrorFeedback]);
 
+  const handleCancelCampaign = useCallback(() => {
+    cancelCampaign({
+      variables: { id: fileDownloadCampaignId },
+      onCompleted(_data, errors) {
+        if (!errors || errors.length === 0 || errors[0].code === "not_found") {
+          setErrorFeedback(null);
+          return;
+        }
+
+        const errorFeedback = errors
+          .map(({ fields, message }) =>
+            fields.length ? `${fields.join(" ")} ${message}` : message,
+          )
+          .join(". \n");
+        setErrorFeedback(errorFeedback);
+      },
+      onError() {
+        setErrorFeedback(
+          <FormattedMessage
+            id="pages.FileDownloadCampaign.cancelErrorFeedback"
+            defaultMessage="Could not cancel the campaign, please try again."
+          />,
+        );
+      },
+    });
+  }, [cancelCampaign, fileDownloadCampaignId, setErrorFeedback]);
+
   const handleResumeCampaign = useCallback(() => {
     resumeCampaign({
       variables: { id: fileDownloadCampaignId },
@@ -254,37 +301,88 @@ const CampaignActions = ({
 
   if (status === "PAUSED" || status === "PAUSING") {
     return (
-      <Button
-        variant="success"
-        size="sm"
-        onClick={handleResumeCampaign}
-        disabled={isResuming || status === "PAUSING"}
-        className="ms-2"
-        title="Resume Campaign"
-      >
-        <Icon icon="play" className="me-2" />
-        <FormattedMessage
-          id="pages.FileDownloadCampaign.resumeButton"
-          defaultMessage="Resume"
-        />
-      </Button>
+      <>
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={handleCancelCampaign}
+          disabled={isCancelling}
+          className="ms-2"
+          title="Cancel Campaign"
+        >
+          <Icon icon="close" className="me-2" />
+          <FormattedMessage
+            id="pages.FileDownloadCampaign.cancelButton"
+            defaultMessage="Cancel"
+          />
+        </Button>
+        <Button
+          variant="success"
+          size="sm"
+          onClick={handleResumeCampaign}
+          disabled={isResuming || status === "PAUSING"}
+          className="ms-2"
+          title="Resume Campaign"
+        >
+          <Icon icon="play" className="me-2" />
+          <FormattedMessage
+            id="pages.FileDownloadCampaign.resumeButton"
+            defaultMessage="Resume"
+          />
+        </Button>
+      </>
     );
   }
 
   if (status === "IN_PROGRESS") {
     return (
+      <>
+        <Button
+          variant="warning"
+          size="sm"
+          onClick={handlePauseCampaign}
+          disabled={isPausing}
+          className="ms-2"
+          title="Pause Campaign"
+        >
+          <Icon icon="pause" className="me-2" />
+          <FormattedMessage
+            id="pages.FileDownloadCampaign.pauseButton"
+            defaultMessage="Pause"
+          />
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={handleCancelCampaign}
+          disabled={isCancelling}
+          className="ms-2"
+          title="Cancel Campaign"
+        >
+          <Icon icon="close" className="me-2" />
+          <FormattedMessage
+            id="pages.FileDownloadCampaign.cancelButton"
+            defaultMessage="Cancel"
+          />
+        </Button>
+      </>
+    );
+  }
+
+  if (status === "SCHEDULED" || status === "IDLE") {
+    return (
       <Button
-        variant="warning"
+        variant="danger"
         size="sm"
-        onClick={handlePauseCampaign}
-        disabled={isPausing}
+        onClick={handleCancelCampaign}
+        disabled={isCancelling}
         className="ms-2"
-        title="Pause Campaign"
+        title="Cancel Campaign"
       >
-        <Icon icon="pause" className="me-2" />
+        <Icon icon="close" className="me-2" />
         <FormattedMessage
-          id="pages.FileDownloadCampaign.pauseButton"
-          defaultMessage="Pause"
+          id="pages.FileDownloadCampaign.cancelButton"
+          defaultMessage="Cancel"
         />
       </Button>
     );
