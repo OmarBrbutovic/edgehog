@@ -61,9 +61,17 @@ defmodule Edgehog.Campaigns.CampaignMechanism.DeploymentDelete.Executor do
 
   defp handle_update(notification, state, data) do
     case notification.payload.action.name do
-      :mark_as_timed_out -> handle_mark_as_timed_out(notification, data)
-      :pause -> handle_mark_as_paused(state, data)
-      _ -> :keep_state_and_data
+      :mark_as_timed_out ->
+        handle_mark_as_timed_out(notification, data)
+
+      :pause ->
+        handle_mark_as_paused(state, data)
+
+      :cancel ->
+        LazyBatch.handle_cancel(state, data)
+
+      _ ->
+        :keep_state_and_data
     end
   end
 

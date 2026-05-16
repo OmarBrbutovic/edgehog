@@ -845,6 +845,49 @@ defmodule Edgehog.Campaigns.Executors.FirmwareUpgradeExecutorTest do
       # Process should terminate normally (completing successfully while paused)
       assert_normal_exit(pid, ref)
     end
+
+    test "cancel causes campaign to be cancelled and executor to terminate", %{tenant: tenant} do
+      max_updates = 3
+
+      base_image = base_image_fixture(tenant: tenant)
+
+      campaign =
+        campaign_with_targets_fixture(8,
+          base_image_id: base_image.id,
+          mechanism_type: :firmware_upgrade,
+          campaign_mechanism: [max_in_progress_operations: max_updates],
+          tenant: tenant
+        )
+
+      init_ref = expect_ota_requests_and_send_sync(max_updates)
+
+      pid = start_executor!(campaign)
+
+      wait_for_sync!(repeat(init_ref, max_updates))
+
+      wait_for_state(pid, :wait_for_available_slot)
+
+      ref = Process.monitor(pid)
+
+      campaign = Ash.get!(Campaign, campaign.id, tenant: tenant)
+      {:ok, _} = Campaigns.cancel_campaign(campaign)
+
+      wait_for_state(pid, :wait_for_campaign_cancelled)
+
+      %{tenant_id: tenant_id, id: campaign_id} = campaign
+
+      %FirmwareUpgrade{}
+      |> MechanismCore.list_in_progress_targets(tenant_id, campaign_id)
+      |> Enum.each(fn target ->
+        update_ota_operation_status!(tenant, target.ota_operation_id, :success)
+      end)
+
+      assert_normal_exit(pid, ref)
+
+      cancelled_campaign = Ash.get!(Campaign, campaign.id, tenant: tenant)
+      assert cancelled_campaign.status == :cancelled
+      assert cancelled_campaign.outcome == :cancelled
+    end
   end
 
   # Helper functions

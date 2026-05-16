@@ -481,6 +481,25 @@ defmodule Edgehog.Campaigns.Executors.Lazy.LazyBatch do
     end
   end
 
+  # State: :wait_for_campaign_cancelled
+
+  def handle_event(:enter, _old_state, :wait_for_campaign_cancelled, data) do
+    if targets_in_progress?(data) do
+      :keep_state_and_data
+    else
+      # We finished all work while cancelling, so we can wrap up the campaign
+      {:keep_state_and_data, {:state_timeout, 0, :check_campaign_cancelled}}
+    end
+  end
+
+  def handle_event(:state_timeout, :check_campaign_cancelled, :wait_for_campaign_cancelled, data) do
+    campaign = MechanismCore.get_campaign!(data.mechanism, data.tenant_id, data.campaign_id)
+
+    _ = MechanismCore.mark_campaign_as_cancelled!(data.mechanism, campaign)
+
+    terminate_executor(data.campaign_id)
+  end
+
   def handle_event(:state_timeout, :transition_to_success, :campaign_paused, data) do
     {:next_state, :campaign_success, data}
   end
@@ -541,6 +560,14 @@ defmodule Edgehog.Campaigns.Executors.Lazy.LazyBatch do
       state == :wait_for_campaign_paused and not targets_in_progress?(data) ->
         # All in-progress targets completed, finalize by transitioning to the paused state
         {:next_state, :campaign_paused, data}
+
+      state == :wait_for_campaign_cancelled and not targets_in_progress?(data) ->
+        # All in-progress targets completed, finalize by marking campaign cancelled
+        campaign = MechanismCore.get_campaign!(data.mechanism, data.tenant_id, data.campaign_id)
+
+        _ = MechanismCore.mark_campaign_as_cancelled!(data.mechanism, campaign)
+
+        terminate_executor(data.campaign_id)
 
       true ->
         # Otherwise, we keep doing what we were doing
@@ -634,6 +661,29 @@ defmodule Edgehog.Campaigns.Executors.Lazy.LazyBatch do
 
   def internal_event(payload) do
     {:next_event, :internal, payload}
+  end
+
+  @doc """
+  Handle a cancel request coming from PubSub notifications.
+  If there are in-progress targets, transition to :wait_for_campaign_cancelled,
+  otherwise mark campaign cancelled and terminate the executor.
+  """
+  def handle_cancel(_state, data) do
+    Logger.info("Campaign #{data.campaign_id}: handling cancel request")
+
+    if targets_in_progress?(data) do
+      Logger.info(
+        "Campaign #{data.campaign_id}: has in-progress targets, waiting for cancellation to complete"
+      )
+
+      {:next_state, :wait_for_campaign_cancelled, data}
+    else
+      campaign = MechanismCore.get_campaign!(data.mechanism, data.tenant_id, data.campaign_id)
+
+      _ = MechanismCore.mark_campaign_as_cancelled!(data.mechanism, campaign)
+
+      terminate_executor(data.campaign_id)
+    end
   end
 
   def terminate_executor(campaign_id) do
