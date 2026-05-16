@@ -27,6 +27,8 @@ defmodule Edgehog.Campaigns.Status do
       in_progress: "The campaign is being rolled-out.",
       pausing: "The campaign rollout is being paused.",
       paused: "The campaign rollout is temporarily suspended.",
+      cancelling: "The campaign rollout is being cancelled.",
+      cancelled: "The campaign rollout has been cancelled.",
       finished: "The campaign has finished."
     ]
 

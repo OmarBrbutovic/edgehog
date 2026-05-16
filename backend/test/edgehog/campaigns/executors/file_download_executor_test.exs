@@ -604,6 +604,46 @@ defmodule Edgehog.Campaigns.Executors.FileDownloadExecutorTest do
 
       assert_normal_exit(pid, ref)
     end
+
+    test "cancel causes campaign to be cancelled and executor to terminate", %{tenant: tenant} do
+      max_requests = 3
+
+      campaign =
+        campaign_with_targets_fixture(8,
+          mechanism_type: :file_download,
+          campaign_mechanism: [max_in_progress_operations: max_requests],
+          tenant: tenant
+        )
+
+      ref = expect_file_download_requests_and_send_sync(max_requests)
+
+      pid = start_executor!(campaign)
+
+      wait_for_sync!(repeat(ref, max_requests))
+
+      wait_for_state(pid, :wait_for_available_slot)
+
+      monitor_ref = Process.monitor(pid)
+
+      campaign = Ash.get!(Campaign, campaign.id, tenant: tenant)
+      {:ok, _} = Campaigns.cancel_campaign(campaign)
+
+      wait_for_state(pid, :wait_for_campaign_cancelled)
+
+      %{tenant_id: tenant_id, id: campaign_id} = campaign
+
+      %FileDownload{}
+      |> MechanismCore.list_in_progress_targets(tenant_id, campaign_id)
+      |> Enum.each(fn target ->
+        update_file_download_request_status!(tenant, target.file_download_request_id, :completed)
+      end)
+
+      assert_normal_exit(pid, monitor_ref)
+
+      cancelled_campaign = Ash.get!(Campaign, campaign.id, tenant: tenant)
+      assert cancelled_campaign.status == :cancelled
+      assert cancelled_campaign.outcome == :cancelled
+    end
   end
 
   defp send_sync(dest, ref) do
