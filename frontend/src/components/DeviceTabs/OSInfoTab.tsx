@@ -59,7 +59,7 @@ const DeviceOSInfoTab = ({ deviceRef }: DeviceOSInfoTabProps) => {
     <Tab
       eventKey="device-os-info-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.OSInfoTab",
+        id: "components.DeviceTabs.OSInfoTab.title",
         defaultMessage: "Operating System",
       })}
     >

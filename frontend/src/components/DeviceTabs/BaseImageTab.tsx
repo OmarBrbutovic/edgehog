@@ -61,7 +61,7 @@ const DeviceBaseImageTab = ({ deviceRef }: DeviceBaseImageTabProps) => {
     <Tab
       eventKey="device-base-image-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.BaseImageTab",
+        id: "components.DeviceTabs.BaseImageTab.title",
         defaultMessage: "Base Image",
       })}
     >

@@ -51,7 +51,7 @@ const DeviceNetworkInterfacesTab = ({
     <Tab
       eventKey="device-network-interfaces-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.NetworkInterfacesTab",
+        id: "components.DeviceTabs.NetworkInterfacesTab.title",
         defaultMessage: "Network Interfaces",
       })}
     >

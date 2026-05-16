@@ -58,7 +58,7 @@ const DeviceHardwareInfoTab = ({ deviceRef }: DeviceHardwareInfoTabProps) => {
     <Tab
       eventKey="device-hardware-info-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.HardwareInfoTab",
+        id: "components.DeviceTabs.HardwareInfoTab.title",
         defaultMessage: "Hardware Info",
       })}
     >

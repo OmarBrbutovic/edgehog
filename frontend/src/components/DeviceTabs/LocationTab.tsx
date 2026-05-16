@@ -57,7 +57,7 @@ const DeviceLocationTab = ({ deviceRef }: DeviceLocationTabProps) => {
     <Tab
       eventKey="device-location-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.LocationTab",
+        id: "components.DeviceTabs.LocationTab.title",
         defaultMessage: "Geolocation",
       })}
     >

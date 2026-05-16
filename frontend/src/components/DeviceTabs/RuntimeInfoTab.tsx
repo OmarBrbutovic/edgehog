@@ -61,7 +61,7 @@ const DeviceRuntimeInfoTab = ({ deviceRef }: DeviceRuntimeInfoTabProps) => {
     <Tab
       eventKey="device-runtime-info-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.RuntimeInfoTab",
+        id: "components.DeviceTabs.RuntimeInfoTab.title",
         defaultMessage: "Runtime",
       })}
     >

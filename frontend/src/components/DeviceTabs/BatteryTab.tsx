@@ -48,7 +48,7 @@ const DeviceBatteryTab = ({ deviceRef }: DeviceBatteryTabProps) => {
     <Tab
       eventKey="device-battery-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.BatteryTab",
+        id: "components.DeviceTabs.BatteryTab.title",
         defaultMessage: "Battery",
       })}
     >

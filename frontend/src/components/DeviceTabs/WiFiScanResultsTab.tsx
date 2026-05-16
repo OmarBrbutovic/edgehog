@@ -50,7 +50,7 @@ const DeviceWiFiScanResultsTab = ({
     <Tab
       eventKey="device-wifi-scan-results-tab"
       title={intl.formatMessage({
-        id: "components.DeviceTabs.WiFiScanResultsTab",
+        id: "components.DeviceTabs.WiFiScanResultsTab.title",
         defaultMessage: "WiFi APs",
       })}
     >
