@@ -19,6 +19,7 @@
  */
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedMessage, useIntl } from "react-intl";
 import Select from "react-select";
@@ -56,7 +57,7 @@ type ManualFileUploadRequestFormProps = {
   className?: string;
   isLoading: boolean;
   onSubmit: (values: ManualFileUploadRequestData) => void;
-  supportedEncodings: string[];
+  supportedEncodingsBySourceType: Record<FileSourceType, string[]>;
   sourceTypeOptions: SourceTypeOption[];
   storageSourceOptions: StorageSourceOption[];
 };
@@ -65,7 +66,7 @@ const ManualFileUploadRequestForm = ({
   className,
   isLoading,
   onSubmit,
-  supportedEncodings,
+  supportedEncodingsBySourceType,
   sourceTypeOptions,
   storageSourceOptions,
 }: ManualFileUploadRequestFormProps) => {
@@ -76,6 +77,7 @@ const ManualFileUploadRequestForm = ({
     formState: { errors },
     handleSubmit,
     register,
+    setValue,
     reset,
   } = useForm({
     mode: "onTouched",
@@ -95,27 +97,30 @@ const ManualFileUploadRequestForm = ({
 
   const effectiveSourceType = selectedSourceType ?? "STORAGE";
 
-  const sourcePlaceholderByType: Record<FileSourceType, string> = {
-    STORAGE: intl.formatMessage({
-      id: "forms.ManualFileUploadRequestForm.sourceStoragePlaceholder",
-      defaultMessage: "Select or enter a storage file ID",
-    }),
-    FILESYSTEM: "/tmp/file.bin",
-  };
-
-  const encodingOptions: CompressionOption[] = [
-    {
-      value: "",
-      label: intl.formatMessage({
-        id: "forms.ManualFileUploadRequestForm.encodingNone",
-        defaultMessage: "None",
+  const sourcePlaceholderByType = useMemo<Record<FileSourceType, string>>(
+    () => ({
+      STORAGE: intl.formatMessage({
+        id: "forms.ManualFileUploadRequestForm.sourceStoragePlaceholder",
+        defaultMessage: "Select or enter a storage file ID",
       }),
-    },
-    ...supportedEncodings.map((encoding) => ({
-      value: encoding,
-      label: encoding,
-    })),
-  ];
+      FILESYSTEM: "/tmp/file.bin",
+    }),
+    [intl],
+  );
+
+  const encodingOptions = useMemo<CompressionOption[]>(() => {
+    const encodings = supportedEncodingsBySourceType[effectiveSourceType] ?? [];
+    return [
+      {
+        value: "",
+        label: intl.formatMessage({
+          id: "forms.ManualFileUploadRequestForm.encodingNone",
+          defaultMessage: "None",
+        }),
+      },
+      ...encodings.map((encoding) => ({ value: encoding, label: encoding })),
+    ];
+  }, [supportedEncodingsBySourceType, effectiveSourceType, intl]);
 
   const onFormSubmit = handleSubmit((data) => {
     onSubmit(data);
@@ -141,21 +146,19 @@ const ManualFileUploadRequestForm = ({
         <Controller
           control={control}
           name="sourceType"
-          render={({ field }) => {
-            const selectedOption =
-              sourceTypeOptions.find((opt) => opt.value === field.value) ||
-              null;
-
-            return (
-              <Select
-                value={selectedOption}
-                onChange={(option) => {
-                  field.onChange(option ? option.value : null);
-                }}
-                options={sourceTypeOptions}
-              />
-            );
-          }}
+          render={({ field }) => (
+            <Select
+              value={
+                sourceTypeOptions.find((opt) => opt.value === field.value) ??
+                null
+              }
+              onChange={(option) => {
+                field.onChange(option?.value ?? null);
+                setValue("encoding", ""); // Cleanly resets encoding without triggering a full form rerender loop
+              }}
+              options={sourceTypeOptions}
+            />
+          )}
         />
       </FormRow>
 
