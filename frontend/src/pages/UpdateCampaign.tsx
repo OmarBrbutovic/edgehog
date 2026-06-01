@@ -415,7 +415,8 @@ const UpdateCampaignContent = ({
 
   const shouldShowScheduledAlert =
     !!campaign?.scheduledAtTimestamp &&
-    (!isValidScheduledDate || scheduledDate.getTime() > now);
+    (!isValidScheduledDate || scheduledDate.getTime() > now) &&
+    campaign.status !== "CANCELLED";
 
   const formattedScheduledDate = isValidScheduledDate ? (
     <FormattedDate value={scheduledDate} dateStyle="medium" timeStyle="short" />

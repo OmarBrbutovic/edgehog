@@ -30,7 +30,9 @@ defmodule Edgehog.Campaigns.Campaign.Workers.ScheduleCampaign do
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"id" => id, "tenant" => tenant} = _args}) do
     with {:ok, campaign} <- Campaigns.fetch_campaign(id, tenant: tenant) do
-      _pid = ExecutorSupervisor.start_executor!(campaign)
+      if campaign.status == :scheduled do
+        _pid = ExecutorSupervisor.start_executor!(campaign)
+      end
 
       {:ok, campaign}
     end
