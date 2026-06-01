@@ -82,6 +82,25 @@ defmodule Edgehog.Campaigns.Campaign.Changes.PauseResumeTest do
     end
   end
 
+  describe "cancel_campaign/1" do
+    test "immediately cancels a scheduled campaign", %{tenant: tenant} do
+      scheduled_at = DateTime.add(DateTime.utc_now(), 3600, :second)
+
+      campaign =
+        campaign_with_targets_fixture(1,
+          tenant: tenant,
+          scheduled_at_timestamp: scheduled_at
+        )
+
+      assert campaign.status == :scheduled
+
+      assert {:ok, cancelled_campaign} = Campaigns.cancel_campaign(campaign)
+      assert cancelled_campaign.status == :cancelled
+      assert cancelled_campaign.outcome == :cancelled
+      assert cancelled_campaign.completion_timestamp
+    end
+  end
+
   describe "resume_campaign/1" do
     test "fails to resume an idle campaign", %{tenant: tenant} do
       campaign = campaign_with_targets_fixture(5, tenant: tenant)
