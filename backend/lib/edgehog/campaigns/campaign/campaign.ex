@@ -225,7 +225,7 @@ defmodule Edgehog.Campaigns.Campaign do
       require_atomic? false
 
       validate {Validations.ValidateStatus, operation: :cancel}
-      change set_attribute(:status, :cancelling)
+      change Changes.Cancel
     end
 
     update :resume do

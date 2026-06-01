@@ -74,7 +74,7 @@ defmodule Edgehog.Campaigns.Campaign.Validations.ValidateStatus do
 
   defp validate_transition(status, :cancel) do
     case status do
-      status when status in [:idle, :scheduled, :in_progress, :pausing, :paused] ->
+      status when status in [:idle, :scheduled, :in_progress, :pausing, :paused, :cancelling] ->
         :ok
 
       _other ->
@@ -82,7 +82,7 @@ defmodule Edgehog.Campaigns.Campaign.Validations.ValidateStatus do
          Changes.InvalidAttribute.exception(
            field: :status,
            message:
-             "Cannot cancel campaign. Campaign must be idle, scheduled, in progress or paused (current status: #{status})"
+             "Cannot cancel campaign. Campaign must be idle, scheduled, in progress, pausing, paused, or already cancelling (current status: #{status})"
          )}
     end
   end

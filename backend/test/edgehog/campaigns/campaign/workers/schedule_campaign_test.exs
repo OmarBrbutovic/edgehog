@@ -26,6 +26,8 @@ defmodule Edgehog.Campaigns.Campaign.Workers.ScheduleCampaignTest do
   import Edgehog.CampaignsFixtures
   import Edgehog.TenantsFixtures
 
+  alias Edgehog.Campaigns
+  alias Edgehog.Campaigns.ExecutorRegistry
   alias Edgehog.Campaigns.Campaign.Workers.ScheduleCampaign
 
   describe "perform/1" do
@@ -58,6 +60,33 @@ defmodule Edgehog.Campaigns.Campaign.Workers.ScheduleCampaignTest do
       job_args = %{"id" => campaign.id, "tenant" => tenant2.tenant_id}
 
       assert {:error, %Ash.Error.Invalid{}} = perform_job(ScheduleCampaign, job_args)
+    end
+
+    test "does not start an executor for a cancelled scheduled campaign" do
+      tenant = tenant_fixture()
+      scheduled_at = DateTime.add(DateTime.utc_now(), 3600, :second)
+
+      campaign =
+        campaign_with_targets_fixture(1,
+          tenant: tenant,
+          scheduled_at_timestamp: scheduled_at
+        )
+
+      assert campaign.status == :scheduled
+
+      {:ok, cancelled_campaign} = Campaigns.cancel_campaign(campaign)
+      assert cancelled_campaign.status == :cancelled
+
+      job_args = %{"id" => campaign.id, "tenant" => tenant.tenant_id}
+
+      assert {:ok, _campaign} = perform_job(ScheduleCampaign, job_args)
+
+      assert [] ==
+               Registry.lookup(ExecutorRegistry, {
+                 tenant.tenant_id,
+                 campaign.id,
+                 campaign.campaign_mechanism.type
+               })
     end
   end
 end
