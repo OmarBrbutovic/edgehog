@@ -1,13 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import eslint from "vite-plugin-eslint";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import relay from "vite-plugin-relay-lite";
 
-export default defineConfig((env) => {
+// @ts-expect-error - The vite-plugin-eslint package.json 'exports' field misconfigures its typings mapping.
+import eslint from "vite-plugin-eslint";
+
+export default defineConfig(({ mode }) => {
   return {
     server: {
-      open: env.mode !== "test",
+      open: mode !== "test",
       port: 3000,
     },
     build: {
