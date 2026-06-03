@@ -1179,6 +1179,9 @@
   "components.ImageCredentialsTable.usernameTitle": {
     "defaultMessage": "Username"
   },
+  "components.InfiniteTable.noRecords": {
+    "defaultMessage": "No records to display."
+  },
   "components.LastSeen.never": {
     "defaultMessage": "Never"
   },
@@ -1355,7 +1358,7 @@
     "defaultMessage": "Select Container"
   },
   "components.SearchBox.searchPlaceholder": {
-    "defaultMessage": "Search",
+    "defaultMessage": "Search...",
     "description": "Placeholder for the search input of the SearchBox"
   },
   "components.Sidebar.ChannelsLabel": {
@@ -1447,6 +1450,12 @@
   },
   "components.SystemModelsTable.partNumbersTitle": {
     "defaultMessage": "Part Numbers"
+  },
+  "components.Table.noRecords": {
+    "defaultMessage": "No records to display."
+  },
+  "components.Table.showing": {
+    "defaultMessage": "Showing {start} to {end} of {total} entries"
   },
   "components.UpdateCampaignsTable.baseImageCollectionNameTitle": {
     "defaultMessage": "Base Image Collection",
