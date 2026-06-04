@@ -46,6 +46,7 @@ defmodule Edgehog.Devices do
       list Device, :devices, :read do
         description "Returns a list of devices."
         paginate_with :keyset
+        relay_id_translations matching_group_id: :device_group
         relay? true
       end
 

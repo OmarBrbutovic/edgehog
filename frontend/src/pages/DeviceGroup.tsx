@@ -42,7 +42,7 @@ import { Link, Route, useNavigate } from "@/Navigation";
 import Alert from "@/components/Alert";
 import Center from "@/components/Center";
 import DeleteModal from "@/components/DeleteModal";
-import DevicesGroupsTable from "@/components/DevicesGroupsTable";
+import DevicesTable from "@/components/DevicesTable";
 import Page from "@/components/Page";
 import Result from "@/components/Result";
 import Spinner from "@/components/Spinner";
@@ -57,9 +57,9 @@ const GET_DEVICE_GROUP_QUERY = graphql`
       name
       handle
       ...UpdateDeviceGroup_DeviceGroupFragment
-      devices {
-        ...DevicesGroupsTable_DeviceFragment
-      }
+    }
+    devices(matchingGroupId: $deviceGroupId) {
+      ...DevicesTable_DeviceEdgeFragment
     }
   }
 `;
@@ -74,9 +74,6 @@ const UPDATE_DEVICE_GROUP_MUTATION = graphql`
         name
         handle
         ...UpdateDeviceGroup_DeviceGroupFragment
-        devices {
-          ...DevicesGroupsTable_DeviceFragment
-        }
       }
     }
   }
@@ -96,9 +93,13 @@ interface DeviceGroupContentProps {
   deviceGroup: NonNullable<
     DeviceGroup_getDeviceGroup_Query$data["deviceGroup"]
   >;
+  devices: NonNullable<DeviceGroup_getDeviceGroup_Query$data["devices"]>;
 }
 
-const DeviceGroupContent = ({ deviceGroup }: DeviceGroupContentProps) => {
+const DeviceGroupContent = ({
+  deviceGroup,
+  devices,
+}: DeviceGroupContentProps) => {
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [errorFeedback, setErrorFeedback] = useState<React.ReactNode>(null);
@@ -107,7 +108,7 @@ const DeviceGroupContent = ({ deviceGroup }: DeviceGroupContentProps) => {
 
   const handleShowDeleteModal = useCallback(() => {
     setShowDeleteModal(true);
-  }, [setShowDeleteModal]);
+  }, []);
 
   const [deleteDeviceGroup, isDeletingDeviceGroup] =
     useMutation<DeviceGroup_deleteDeviceGroup_Mutation>(
@@ -145,9 +146,10 @@ const DeviceGroupContent = ({ deviceGroup }: DeviceGroupContentProps) => {
           return;
         }
 
-        const deviceGroup = store
+        const deletedDeviceGroup = store
           .getRootField("deleteDeviceGroup")
-          .getLinkedRecord("result");
+          ?.getLinkedRecord("result");
+        if (!deletedDeviceGroup) return;
         const root = store.getRoot();
 
         const connection = ConnectionHandler.getConnection(
@@ -158,19 +160,6 @@ const DeviceGroupContent = ({ deviceGroup }: DeviceGroupContentProps) => {
         if (connection) {
           ConnectionHandler.deleteNode(connection, deviceGroupId);
         }
-
-        const devices = deviceGroup.getLinkedRecords("devices");
-        devices?.forEach((device) => {
-          const deviceGroups = device.getLinkedRecords("deviceGroups");
-          if (deviceGroups) {
-            device.setLinkedRecords(
-              deviceGroups.filter(
-                (deviceGroup) => deviceGroup.getDataID() !== deviceGroupId,
-              ),
-              "deviceGroups",
-            );
-          }
-        });
 
         const channelsConnection = ConnectionHandler.getConnection(
           root,
@@ -242,55 +231,6 @@ const DeviceGroupContent = ({ deviceGroup }: DeviceGroupContentProps) => {
               defaultMessage="Could not update the group, please try again."
             />,
           );
-        },
-        updater(store, data) {
-          if (!data?.updateDeviceGroup?.result) {
-            return;
-          }
-
-          const root = store.getRoot();
-          const devices = root.getLinkedRecords("devices");
-          if (!devices) {
-            return;
-          }
-
-          const deviceGroup = store
-            .getRootField("updateDeviceGroup")
-            .getLinkedRecord("result");
-          const deviceGroupId = deviceGroup.getDataID();
-
-          const linkedDevices = new Set(
-            deviceGroup
-              .getLinkedRecords("devices")
-              ?.map((device) => device.getDataID()),
-          );
-
-          devices.forEach((device) => {
-            const deviceGroups = device.getLinkedRecords("deviceGroups");
-            if (!deviceGroups) {
-              return;
-            }
-
-            if (!linkedDevices.has(device.getDataID())) {
-              return device.setLinkedRecords(
-                deviceGroups.filter(
-                  (deviceGroup) => deviceGroup.getDataID() !== deviceGroupId,
-                ),
-                "deviceGroups",
-              );
-            }
-
-            if (
-              !deviceGroups.some(
-                (deviceGroup) => deviceGroup.getDataID() === deviceGroupId,
-              )
-            ) {
-              device.setLinkedRecords(
-                [...deviceGroups, deviceGroup],
-                "deviceGroups",
-              );
-            }
-          });
         },
       });
     },
@@ -364,12 +304,13 @@ type DeviceGroupWrapperProps = {
 const DeviceGroupWrapper = ({
   getDeviceGroupQuery,
 }: DeviceGroupWrapperProps) => {
-  const { deviceGroup } = usePreloadedQuery<DeviceGroup_getDeviceGroup_Query>(
-    GET_DEVICE_GROUP_QUERY,
-    getDeviceGroupQuery,
-  );
+  const { deviceGroup, devices } =
+    usePreloadedQuery<DeviceGroup_getDeviceGroup_Query>(
+      GET_DEVICE_GROUP_QUERY,
+      getDeviceGroupQuery,
+    );
 
-  if (!deviceGroup) {
+  if (!deviceGroup || !devices) {
     return (
       <Result.NotFound
         title={
@@ -389,7 +330,7 @@ const DeviceGroupWrapper = ({
     );
   }
 
-  return <DeviceGroupContent deviceGroup={deviceGroup} />;
+  return <DeviceGroupContent deviceGroup={deviceGroup} devices={devices} />;
 };
 
 const DeviceGroupPage = () => {
