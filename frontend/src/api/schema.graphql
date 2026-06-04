@@ -1654,6 +1654,44 @@ input ReleaseCreateRequiredSystemModelsInput {
   id: ID
 }
 
+":release_container_dependencies connection"
+type ReleaseContainerDependenciesConnection {
+  "Total count on all pages"
+  count: Int
+
+  "Page information"
+  pageInfo: PageInfo!
+
+  ":release_container_dependencies edges"
+  edges: [ReleaseContainerDependenciesEdge!]
+}
+
+":release_container_dependencies edge"
+type ReleaseContainerDependenciesEdge {
+  "Cursor"
+  cursor: String!
+
+  ":release_container_dependencies node"
+  node: ReleaseContainerDependencies!
+}
+
+input ReleaseContainerDependenciesFilterInput {
+  and: [ReleaseContainerDependenciesFilterInput!]
+  or: [ReleaseContainerDependenciesFilterInput!]
+  not: [ReleaseContainerDependenciesFilterInput!]
+  container: ContainerFilterInput
+  dependency: ContainerFilterInput
+}
+
+type ReleaseContainerDependencies {
+  "A unique identifier"
+  id: ID!
+
+  container: Container!
+
+  dependency: Container!
+}
+
 enum ContainerVolumeSortField {
   TARGET
   VOLUME_ID
@@ -2255,6 +2293,12 @@ type Volume implements Node {
     "A filter to limit the results"
     filter: DeviceFilterInput
 
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+
     "The number of records to return from the beginning. Maximum 250"
     first: Int
 
@@ -2602,6 +2646,12 @@ type Network implements Node {
     "A filter to limit the results"
     filter: DeviceFilterInput
 
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+
     "The number of records to return from the beginning. Maximum 250"
     first: Int
 
@@ -2728,6 +2778,7 @@ input ReleaseFilterInput {
   application: ApplicationFilterInput
   deployments: DeploymentFilterInput
   containers: ContainerFilterInput
+  containerDependencies: ReleaseContainerDependenciesFilterInput
   systemModels: SystemModelFilterInput
 }
 
@@ -2779,6 +2830,22 @@ type Release implements Node {
     "The number of records to return to the end. Maximum 250"
     last: Int
   ): ContainerConnection!
+  containerDependencies(
+    "A filter to limit the results"
+    filter: ReleaseContainerDependenciesFilterInput
+
+    "The number of records to return from the beginning. Maximum 250"
+    first: Int
+
+    "Show records before the specified keyset."
+    before: String
+
+    "Show records after the specified keyset."
+    after: String
+
+    "The number of records to return to the end. Maximum 250"
+    last: Int
+  ): ReleaseContainerDependenciesConnection!
   systemModels(
     "How to sort the records in the response"
     sort: [SystemModelSortInput]
@@ -3069,6 +3136,12 @@ type Image {
 
     "A filter to limit the results"
     filter: DeviceFilterInput
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
 
     "The number of records to return from the beginning. Maximum 250"
     first: Int
@@ -3443,7 +3516,13 @@ type Deployment implements Node {
 
   releaseId: ID
 
-  device: Device
+  device(
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+  ): Device
 
   release: Release
 
@@ -3620,7 +3699,13 @@ type ContainerDeployment {
   deviceId: Int
   imageDeploymentId: ID
   container: Container
-  device: Device
+  device(
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+  ): Device
   imageDeployment: ImageDeployment
   networkDeployments(
     "How to sort the records in the response"
@@ -4127,6 +4212,12 @@ type Container implements Node {
 
     "A filter to limit the results"
     filter: DeviceFilterInput
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
 
     "The number of records to return from the beginning. Maximum 250"
     first: Int
@@ -5679,7 +5770,13 @@ type FileDeleteRequest {
   responseMessages: [String!]
 
   "The device associated with this file delete request."
-  device: Device!
+  device(
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+  ): Device!
 
   "The file download request that resulted in the file targeted by this delete request"
   fileDownloadRequest: FileDownloadRequest!
@@ -5705,11 +5802,21 @@ type CreateFileUploadRequestResult {
 }
 
 input CreateFileUploadRequestInput {
+  "The value depends on the selected source_type: for 'storage' is the ID of an 'io.edgehog.devicemanager.storage.File' property, for 'streaming' it's an empty string, and for 'filesystem' is a path of a file on the device."
   source: String
+
+  "Source from which the file should be read from, with allowed values: [storage, streaming, filesystem]."
   sourceType: FileSource!
+
+  "Optional enum string for the file encoding with default value empty, other values are: [gz, lz4, tar, tar.gz, tar.lz4]"
   encoding: String
+
+  "Flag to enable the progress reporting of the upload."
   progressTracked: Boolean
+
+  "Optional HTTP headers to include in the upload request. The value is a map where keys are header names and values are header values."
   httpHeaders: JsonString
+
   deviceId: ID!
 }
 
@@ -5913,19 +6020,43 @@ input FileUploadRequestFilterId {
 
 input FileUploadRequestFilterInput {
   and: [FileUploadRequestFilterInput!]
+
   or: [FileUploadRequestFilterInput!]
+
   not: [FileUploadRequestFilterInput!]
+
   id: FileUploadRequestFilterId
+
+  "The presigned URL to which the file should be uploaded."
   url: FileUploadRequestFilterUrl
+
+  "The value depends on the selected source_type: for 'storage' is the ID of an 'io.edgehog.devicemanager.storage.File' property, for 'streaming' it's an empty string, and for 'filesystem' is a path of a file on the device."
   source: FileUploadRequestFilterSource
+
+  "Source from which the file should be read from, with allowed values: [storage, streaming, filesystem]."
   sourceType: FileUploadRequestFilterSourceType
+
+  "Optional enum string for the file encoding with default value empty, other values are: [gz, lz4, tar, tar.gz, tar.lz4]"
   encoding: FileUploadRequestFilterEncoding
+
+  "Flag to enable the progress reporting of the upload."
   progressTracked: FileUploadRequestFilterProgressTracked
+
+  "The status of the file upload (e.g., 'pending', 'sent', 'in_progress', 'completed', 'failed')."
   status: FileUploadRequestFilterStatus
+
+  "The progress of the file upload as a percentage (0-100)."
   progressPercentage: FileUploadRequestFilterProgressPercentage
+
+  "A 0 code is a success, errors are POSIX error numbers."
   responseCode: FileUploadRequestFilterResponseCode
+
+  "Optional message for the response sent by the device."
   responseMessage: FileUploadRequestFilterResponseMessage
+
+  "Optional HTTP headers to include in the upload request. The value is a map where keys are header names and values are header values."
   httpHeaders: FileUploadRequestFilterHttpHeaders
+
   device: DeviceFilterInput
 }
 
@@ -5937,27 +6068,43 @@ input FileUploadRequestSortInput {
 type FileUploadRequest {
   id: ID!
 
+  "The presigned URL to which the file should be uploaded."
   url: String!
 
+  "The value depends on the selected source_type: for 'storage' is the ID of an 'io.edgehog.devicemanager.storage.File' property, for 'streaming' it's an empty string, and for 'filesystem' is a path of a file on the device."
   source: String
 
+  "Source from which the file should be read from, with allowed values: [storage, streaming, filesystem]."
   sourceType: FileSource!
 
+  "Optional enum string for the file encoding with default value empty, other values are: [gz, lz4, tar, tar.gz, tar.lz4]"
   encoding: String
 
+  "Flag to enable the progress reporting of the upload."
   progressTracked: Boolean
 
+  "The status of the file upload (e.g., 'pending', 'sent', 'in_progress', 'completed', 'failed')."
   status: FileUploadRequestStatus
 
+  "The progress of the file upload as a percentage (0-100)."
   progressPercentage: Int
 
+  "A 0 code is a success, errors are POSIX error numbers."
   responseCode: Int
 
+  "Optional message for the response sent by the device."
   responseMessage: String
 
+  "Optional HTTP headers to include in the upload request. The value is a map where keys are header names and values are header values."
   httpHeaders: JsonString
 
-  device: Device!
+  device(
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+  ): Device!
 
   "Get a presigned URL for downloading the uploaded file. The URL is valid for a limited time."
   getPresignedUrl: String
@@ -6552,7 +6699,13 @@ type FileDownloadRequest {
   deleted: Boolean
 
   "The device associated with this file download request."
-  device: Device!
+  device(
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+  ): Device!
 
   "The campaign target that created the file download request, if any."
   campaignTarget: CampaignTarget
@@ -7277,6 +7430,12 @@ type DeviceGroup implements Node {
     "A filter to limit the results"
     filter: DeviceFilterInput
 
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+
     "The number of records to return."
     limit: Int
 
@@ -7616,7 +7775,13 @@ type OtaOperation {
   updatedAt: DateTime!
 
   "The device targeted from the operation"
-  device: Device!
+  device(
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+  ): Device!
 
   """
   The update target of an update campaign that created the managed
@@ -8041,7 +8206,13 @@ type CampaignTarget {
 
   campaign: Campaign!
 
-  device: Device!
+  device(
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+  ): Device!
 
   deployment: Deployment
 
@@ -8581,7 +8752,16 @@ type RootQueryType {
   ): RepositoryConnection
 
   "Returns a single device."
-  device("The id of the record" id: ID!): Device
+  device(
+    "The id of the record"
+    id: ID!
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+  ): Device
 
   "Returns a list of devices."
   devices(
@@ -8602,6 +8782,12 @@ type RootQueryType {
 
     "The number of records to return to the end. Maximum 250"
     last: Int
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
   ): DeviceConnection
 
   "Returns a single hardware type."
@@ -8843,7 +9029,7 @@ type RootMutationType {
   "Creates a new channel."
   createChannel(input: CreateChannelInput!): CreateChannelResult
 
-  "Updates an channel."
+  "Updates a channel."
   updateChannel(id: ID!, input: UpdateChannelInput): UpdateChannelResult
 
   "Deletes an channel."
@@ -8914,20 +9100,54 @@ type RootMutationType {
   ): CreateFileDeleteRequestResult
 
   "Updates a device."
-  updateDevice(id: ID!, input: UpdateDeviceInput): UpdateDeviceResult
+  updateDevice(
+    id: ID!
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+
+    input: UpdateDeviceInput
+  ): UpdateDeviceResult
 
   "Add tags to a device."
-  addDeviceTags(id: ID!, input: AddDeviceTagsInput!): AddDeviceTagsResult
+  addDeviceTags(
+    id: ID!
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+
+    input: AddDeviceTagsInput!
+  ): AddDeviceTagsResult
 
   "Remove tags from a device."
   removeDeviceTags(
     id: ID!
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+
     input: RemoveDeviceTagsInput!
   ): RemoveDeviceTagsResult
 
   "Sets led behavior."
   setDeviceLedBehavior(
     id: ID!
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
+
     input: SetDeviceLedBehaviorInput!
   ): SetDeviceLedBehaviorResult
 
@@ -9112,6 +9332,12 @@ type RootSubscriptionType {
   deviceChanged(
     "A filter to limit the results"
     filter: DeviceFilterInput
+
+    "Filters devices dynamically based on a DeviceGroup's selector"
+    matchingGroupId: ID
+
+    "Optional raw selector for dry-runs"
+    matchingSelector: String
   ): device_changed_result
   hardwareType(
     "A filter to limit the results"

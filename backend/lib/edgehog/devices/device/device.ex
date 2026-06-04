@@ -23,6 +23,7 @@ defmodule Edgehog.Devices.Device do
   Device resource schema and operations.
   """
   use Edgehog.MultitenantResource,
+    primary_read_warning?: false,
     domain: Edgehog.Devices,
     extensions: [
       AshGraphql.Resource,
@@ -98,7 +99,24 @@ defmodule Edgehog.Devices.Device do
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:destroy]
+
+    read :read do
+      primary? true
+      pagination keyset?: true, offset?: true, required?: false
+
+      argument :matching_group_id, :id do
+        description "Filters devices dynamically based on a DeviceGroup's selector"
+        allow_nil? true
+      end
+
+      argument :matching_selector, :string do
+        description "Optional raw selector for dry-runs"
+        allow_nil? true
+      end
+
+      prepare Edgehog.Devices.Device.Preparations.FilterBySelector
+    end
 
     create :create do
       primary? true
