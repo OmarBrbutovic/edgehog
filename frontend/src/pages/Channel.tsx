@@ -19,8 +19,9 @@
  */
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
+import { FormattedMessage } from "react-intl";
+import type { PreloadedQuery } from "react-relay/hooks";
 import {
   ConnectionHandler,
   graphql,
@@ -29,19 +30,9 @@ import {
   useQueryLoader,
   useRefetchableFragment,
 } from "react-relay/hooks";
-import type { PreloadedQuery } from "react-relay/hooks";
-import { FormattedMessage } from "react-intl";
+import { useParams } from "react-router-dom";
 
-import { Link, Route, useNavigate } from "@/Navigation";
-import Alert from "@/components/Alert";
-import Center from "@/components/Center";
-import DeleteModal from "@/components/DeleteModal";
-import Page from "@/components/Page";
-import Result from "@/components/Result";
-import Spinner from "@/components/Spinner";
-import ChannelForm from "@/forms/UpdateChannel";
-import type { ChannelOutputData } from "@/forms/UpdateChannel";
-
+import type { Channel_deleteChannel_Mutation } from "@/api/__generated__/Channel_deleteChannel_Mutation.graphql";
 import type {
   Channel_getChannel_Query,
   Channel_getChannel_Query$data,
@@ -49,7 +40,16 @@ import type {
 import type { Channel_OptionsFragment$key } from "@/api/__generated__/Channel_OptionsFragment.graphql";
 import type { Channel_refetchOptions_Query } from "@/api/__generated__/Channel_refetchOptions_Query.graphql";
 import type { Channel_updateChannel_Mutation } from "@/api/__generated__/Channel_updateChannel_Mutation.graphql";
-import type { Channel_deleteChannel_Mutation } from "@/api/__generated__/Channel_deleteChannel_Mutation.graphql";
+
+import Alert from "@/components/Alert";
+import Center from "@/components/Center";
+import DeleteModal from "@/components/DeleteModal";
+import Page from "@/components/Page";
+import Result from "@/components/Result";
+import Spinner from "@/components/Spinner";
+import type { ChannelOutputData } from "@/forms/UpdateChannel";
+import ChannelForm from "@/forms/UpdateChannel";
+import { Link, Route, useNavigate } from "@/Navigation";
 
 const UPDATE_CHANNEL_OPTIONS_FRAGMENT = graphql`
   fragment Channel_OptionsFragment on RootQueryType
@@ -78,17 +78,7 @@ const UPDATE_CHANNEL_MUTATION = graphql`
     updateChannel(id: $channelId, input: $input) {
       result {
         id
-        name
-        handle
         ...UpdateChannel_ChannelFragment
-        targetGroups {
-          edges {
-            node {
-              id
-              name
-            }
-          }
-        }
       }
     }
   }
@@ -120,6 +110,7 @@ const ChannelContent = ({ queryRef, channel }: ChannelContentProps) => {
   const navigate = useNavigate();
 
   const channelId = channel.id;
+
   const [channelOptions, refetchOptions] = useRefetchableFragment<
     Channel_refetchOptions_Query,
     Channel_OptionsFragment$key
@@ -128,30 +119,29 @@ const ChannelContent = ({ queryRef, channel }: ChannelContentProps) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [errorFeedback, setErrorFeedback] = useState<React.ReactNode>(null);
 
-  const handleShowDeleteModal = useCallback(() => {
-    setShowDeleteModal(true);
-  }, [setShowDeleteModal]);
-
   const [deleteChannel, isDeletingChannel] =
     useMutation<Channel_deleteChannel_Mutation>(DELETE_CHANNEL_MUTATION);
+
+  const [updateChannel, isUpdatingChannel] =
+    useMutation<Channel_updateChannel_Mutation>(UPDATE_CHANNEL_MUTATION);
 
   const handleDeleteChannel = useCallback(() => {
     deleteChannel({
       variables: { channelId },
-      onCompleted(_data, errors) {
-        if (!errors || errors.length === 0 || errors[0].code === "not_found") {
+      onCompleted: (_data, errors) => {
+        if (!errors?.length || errors[0].code === "not_found") {
           return navigate({ route: Route.channels });
         }
 
         const errorFeedback = errors
-          .map(({ fields, message }) =>
-            fields.length ? `${fields.join(" ")} ${message}` : message,
+          .map((e) =>
+            e.fields?.length ? `${e.fields.join(" ")} ${e.message}` : e.message,
           )
           .join(". \n");
         setErrorFeedback(errorFeedback);
         setShowDeleteModal(false);
       },
-      onError() {
+      onError: () => {
         setErrorFeedback(
           <FormattedMessage
             id="pages.Channel.deletionErrorFeedback"
@@ -160,36 +150,33 @@ const ChannelContent = ({ queryRef, channel }: ChannelContentProps) => {
         );
         setShowDeleteModal(false);
       },
-      updater(store, data) {
-        const channelId = data?.deleteChannel?.result?.id;
-        if (!channelId) {
-          return;
-        }
-        const channel = store
-          .getRootField("deleteChannel")
-          .getLinkedRecord("result");
+      updater: (store, data) => {
+        const deletedId = data?.deleteChannel?.result?.id;
+        if (!deletedId) return;
 
         const root = store.getRoot();
-
         const connection = ConnectionHandler.getConnection(
           root,
           "ChannelsTable_channels",
         );
-
         if (connection) {
-          ConnectionHandler.deleteNode(connection, channelId);
+          ConnectionHandler.deleteNode(connection, deletedId);
         }
 
+        const deletedChannel = store
+          .getRootField("deleteChannel")
+          ?.getLinkedRecord("result");
+
         const targetGroupIds = new Set(
-          channel
-            .getLinkedRecord("targetGroups")
+          deletedChannel
+            ?.getLinkedRecord("targetGroups")
             ?.getLinkedRecords("edges")
-            ?.map((edge) => edge.getLinkedRecord("node").getDataID()) || [],
+            ?.map((edge) => edge.getLinkedRecord("node")?.getDataID()) ?? [],
         );
 
         const deviceGroups = root.getLinkedRecord("deviceGroups");
-        if (deviceGroups && targetGroupIds.size) {
-          deviceGroups?.getLinkedRecords("edges")?.forEach((edge) => {
+        if (deviceGroups && targetGroupIds.size > 0) {
+          deviceGroups.getLinkedRecords("edges")?.forEach((edge) => {
             const deviceGroup = edge.getLinkedRecord("node");
             if (deviceGroup && targetGroupIds.has(deviceGroup.getDataID())) {
               deviceGroup.invalidateRecord();
@@ -197,34 +184,33 @@ const ChannelContent = ({ queryRef, channel }: ChannelContentProps) => {
           });
         }
 
-        store.delete(channelId);
+        store.delete(deletedId);
       },
     });
   }, [deleteChannel, channelId, navigate]);
 
-  const [updateChannel, isUpdatingChannel] =
-    useMutation<Channel_updateChannel_Mutation>(UPDATE_CHANNEL_MUTATION);
-
   const handleUpdateChannel = useCallback(
-    (channel: ChannelOutputData) => {
+    (input: ChannelOutputData) => {
       updateChannel({
-        variables: { channelId, input: channel },
-        onCompleted(data, errors) {
+        variables: { channelId, input },
+        onCompleted: (data, errors) => {
           if (data.updateChannel?.result) {
             setErrorFeedback(null);
             refetchOptions({}, { fetchPolicy: "store-and-network" });
             return;
           }
-          if (errors) {
+          if (errors?.length) {
             const errorFeedback = errors
-              .map(({ fields, message }) =>
-                fields.length ? `${fields.join(" ")} ${message}` : message,
+              .map((e) =>
+                e.fields?.length
+                  ? `${e.fields.join(" ")} ${e.message}`
+                  : e.message,
               )
               .join(". \n");
-            return setErrorFeedback(errorFeedback);
+            setErrorFeedback(errorFeedback);
           }
         },
-        onError() {
+        onError: () => {
           setErrorFeedback(
             <FormattedMessage
               id="pages.Channel.updateErrorFeedback"
@@ -254,7 +240,7 @@ const ChannelContent = ({ queryRef, channel }: ChannelContentProps) => {
             channelRef={channel}
             optionsRef={channelOptions}
             onSubmit={handleUpdateChannel}
-            onDelete={handleShowDeleteModal}
+            onDelete={() => setShowDeleteModal(true)}
             isLoading={isUpdatingChannel}
           />
         </div>
@@ -331,7 +317,9 @@ const ChannelPage = () => {
     [getChannel, channelId],
   );
 
-  useEffect(fetchChannel, [fetchChannel]);
+  useEffect(() => {
+    fetchChannel();
+  }, [fetchChannel]);
 
   return (
     <Suspense

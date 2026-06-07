@@ -16,27 +16,28 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useMemo, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { useIntl, FormattedMessage } from "react-intl";
-import { graphql, useFragment } from "react-relay/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import Button from "@/components/Button";
-import Form from "@/components/Form";
-import MultiSelect from "@/components/MultiSelect";
-import Spinner from "@/components/Spinner";
-import Stack from "@/components/Stack";
-import { FormRow } from "@/components/FormRow";
+import { useCallback, useMemo } from "react";
+import type { FieldErrors } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { FormattedMessage, useIntl } from "react-intl";
+import { graphql, useFragment } from "react-relay/hooks";
 
 import type { UpdateChannel_ChannelFragment$key } from "@/api/__generated__/UpdateChannel_ChannelFragment.graphql";
 import type { UpdateChannel_OptionsFragment$key } from "@/api/__generated__/UpdateChannel_OptionsFragment.graphql";
+
+import Button from "@/components/Button";
+import Form from "@/components/Form";
+import { FormRow } from "@/components/FormRow";
+import MultiSelect from "@/components/MultiSelect";
+import Spinner from "@/components/Spinner";
+import Stack from "@/components/Stack";
+import FormFeedback from "@/forms/FormFeedback";
 import {
   ChannelUpdateFormData,
   TargetGroupExtended,
   updateChannelSchema,
 } from "@/forms/validation";
-import FormFeedback from "@/forms/FormFeedback";
 
 const UPDATE_UPDATE_CHANNEL_FRAGMENT = graphql`
   fragment UpdateChannel_ChannelFragment on Channel {
@@ -75,28 +76,23 @@ const UPDATE_UPDATE_CHANNEL_OPTIONS_FRAGMENT = graphql`
   }
 `;
 
-// react-hook-form returns targetGroups validation error as Array<Record<string, FieldError>> type
-// ignoring eventual minimum length validation error type.
-// TargetGroupsErrors handles errors as unknown and uses type guards to render type-safe error message.
-// TODO: update RHF
-const TargetGroupsErrors = ({ errors }: { errors: unknown }) => {
-  const intl = useIntl();
-  const fmt = intl.formatMessage;
+type TargetGroupErrorProp = FieldErrors<ChannelUpdateFormData>["targetGroups"];
 
-  if (errors == null) {
+const TargetGroupsErrors = ({ error }: { error?: TargetGroupErrorProp }) => {
+  const { formatMessage } = useIntl();
+
+  const errorMessage =
+    error && "message" in error
+      ? (error.message as string | undefined)
+      : undefined;
+
+  if (!errorMessage) {
     return null;
   }
-  if (typeof errors === "object" && !Array.isArray(errors)) {
-    if (
-      "message" in errors &&
-      typeof (errors as Record<"message", unknown>).message === "string"
-    ) {
-      const message = (errors as Record<"message", string>).message;
-      return <>{fmt({ id: message })}</>;
-    }
-  }
-  return null;
+
+  return <>{formatMessage({ id: errorMessage })}</>;
 };
+
 type ChannelOutputData = {
   name: string;
   handle: string;
@@ -130,6 +126,8 @@ const UpdateChannel = ({
   onSubmit,
   onDelete,
 }: Props) => {
+  const intl = useIntl();
+
   const channel = useFragment(UPDATE_UPDATE_CHANNEL_FRAGMENT, channelRef);
 
   const { deviceGroups: targetGroups } = useFragment(
@@ -145,28 +143,23 @@ const UpdateChannel = ({
     reset,
   } = useForm<ChannelUpdateFormData>({
     mode: "onTouched",
-    defaultValues: {
+    // `values` automatically tracks and resets data changes (no `useEffect` needed)
+    values: {
       ...channel,
-      targetGroups: channel.targetGroups.edges?.map((edge) => edge.node),
+      targetGroups: channel.targetGroups.edges?.map((edge) => edge.node) ?? [],
     },
     resolver: zodResolver(updateChannelSchema),
   });
 
-  useEffect(() => {
-    reset({
-      ...channel,
-      targetGroups: channel.targetGroups.edges?.map((edge) => edge.node),
-    });
-  }, [reset, channel]);
-
-  const intl = useIntl();
+  const isTargetGroupUsedByOtherChannel = useCallback(
+    (targetGroup: TargetGroupExtended) =>
+      targetGroup.channel !== null && targetGroup.channel.id !== channel.id,
+    [channel.id],
+  );
 
   const getTargetGroupLabel = useCallback(
     (targetGroup: TargetGroupExtended) => {
-      if (
-        targetGroup.channel === null ||
-        targetGroup.channel.id === channel.id
-      ) {
+      if (!isTargetGroupUsedByOtherChannel(targetGroup)) {
         return targetGroup.name;
       }
       return intl.formatMessage(
@@ -178,19 +171,11 @@ const UpdateChannel = ({
         },
         {
           targetGroupName: targetGroup.name,
-          channelName: targetGroup.channel.name,
+          channelName: targetGroup.channel?.name ?? "",
         },
       );
     },
-    [intl, channel.id],
-  );
-  const isTargetGroupUsedByOtherChannel = useCallback(
-    (targetGroup: TargetGroupExtended) => {
-      return !(
-        targetGroup.channel === null || targetGroup.channel.id === channel.id
-      );
-    },
-    [channel.id],
+    [intl, isTargetGroupUsedByOtherChannel],
   );
 
   const targetGroupOptions = useMemo(() => {
@@ -200,13 +185,8 @@ const UpdateChannel = ({
         const group1Disabled = isTargetGroupUsedByOtherChannel(group1);
         const group2Disabled = isTargetGroupUsedByOtherChannel(group2);
 
-        if (group1Disabled === group2Disabled) {
-          return 0;
-        }
-        if (group1Disabled) {
-          return 1;
-        }
-        return -1;
+        if (group1Disabled === group2Disabled) return 0;
+        return group1Disabled ? 1 : -1;
       },
     );
   }, [targetGroups, isTargetGroupUsedByOtherChannel]);
@@ -233,6 +213,7 @@ const UpdateChannel = ({
           <Form.Control {...register("name")} isInvalid={!!errors.name} />
           <FormFeedback feedback={errors.name?.message} />
         </FormRow>
+
         <FormRow
           id="update-channel-form-handle"
           label={
@@ -245,6 +226,7 @@ const UpdateChannel = ({
           <Form.Control {...register("handle")} isInvalid={!!errors.handle} />
           <FormFeedback feedback={errors.handle?.message} />
         </FormRow>
+
         <FormRow
           id="update-channel-form-target-groups"
           label={
@@ -274,11 +256,10 @@ const UpdateChannel = ({
             )}
           />
           <Form.Control.Feedback type="invalid">
-            {errors.targetGroups && (
-              <TargetGroupsErrors errors={errors.targetGroups} />
-            )}
+            <TargetGroupsErrors error={errors.targetGroups} />
           </Form.Control.Feedback>
         </FormRow>
+
         <Stack
           direction="horizontal"
           gap={3}
