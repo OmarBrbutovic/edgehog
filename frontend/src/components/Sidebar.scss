@@ -129,6 +129,13 @@ $active-text: #ffffff;
   }
 
   .sidebar-footer {
+    width: 100%;
+    overflow: hidden;
+
+    .sidebar-logout-wrapper {
+      transition: margin-top $transition-speed ease;
+    }
+
     .sidebar-item-label {
       margin-left: 0.25rem;
     }
@@ -136,6 +143,15 @@ $active-text: #ffffff;
     .sidebar-meta {
       font-size: 0.8rem;
       transition: all $transition-speed ease;
+      white-space: nowrap;
+    }
+
+    .sidebar-app-name {
+      display: inline-block;
+      transition:
+        opacity 0.1s,
+        width $transition-speed,
+        visibility $transition-speed;
     }
   }
 
@@ -179,11 +195,26 @@ $active-text: #ffffff;
         margin: 4px 16px;
       }
 
-      .sidebar-footer .sidebar-meta {
-        text-align: center;
+      .sidebar-footer {
+        .sidebar-logout-wrapper {
+          margin-top: 0 !important;
 
-        .sidebar-app-name {
-          display: none;
+          .sidebar-link {
+            width: auto !important;
+            flex-grow: 1;
+          }
+        }
+
+        .sidebar-meta {
+          text-align: center;
+
+          .sidebar-app-name {
+            opacity: 0;
+            width: 0;
+            visibility: hidden;
+            margin: 0 !important;
+            transition: opacity 0.1s;
+          }
         }
       }
     }

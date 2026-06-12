@@ -491,7 +491,7 @@ const Sidebar = memo(
         </nav>
 
         <div className="sidebar-footer d-flex flex-column align-items-center flex-shrink-0 mb-2 bg-white border-top">
-          <div className={`w-100 d-flex ${isDesktopCollapsed ? "" : "mt-2"}`}>
+          <div className="sidebar-logout-wrapper w-100 d-flex mt-2">
             <SidebarItem
               label={
                 <FormattedMessage
